@@ -51,15 +51,35 @@ class AgentManager:
         fetch_source = subprocess.call(["git", "clone", ag_source, temp])
 
         if fetch_source != 0:
-            self._listener.log("installer", "info",
+            self._listener.log("manager", "info",
                 "Could not fetch source from " + ag_source)
             return
 
         agent_info = configparser.ConfigParser()
         agent_info.read(os.path.join(temp, "setup.zoe"))
 
-        self.logger.info("moviendo")
+        # Move agent files
         for dest in agent_info['INSTALL']:
             shutil.move(
                 os.path.join(temp, agent_info['INSTALL'][dest]),
-                os.path.join(os.environ['ZOE_HOME'], dest))       
+                os.path.join(os.environ['ZOE_HOME'], dest))
+
+        # Add agent to the zoe.conf file
+        conf_path = os.path.join(os.environ['ZOE_HOME'], "etc", "zoe.conf")
+        zconf = configparser.ConfigParser()
+        zconf.read(conf_path)
+
+        ports = []
+        for sec in zconf.sections():
+            if 'port' in zconf[sec]:
+                ports.append(int(zconf[sec]['port']))
+        ports = sorted(ports)
+
+        free_port = ports[0]
+        while free_port in ports:
+            free_port += 1
+
+        zconf.add_section('agent ' + ag_name)
+        zconf['agent ' + ag_name]['port'] = str(free_port)
+        with open(conf_path, 'w') as configfile:
+            zconf.write(configfile)
