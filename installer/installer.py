@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Zoe Agent Installer - https://github.com/RMed/zoe_agent_installer
@@ -29,9 +30,11 @@ import os
 import shutil
 import subprocess
 import zoe
+from zoe.deco import *
 
 
-class InstallerAgent(object):
+@Agent(name = "installer")
+class InstallerAgent:
     """ Installer Agent
 
         This agent receives messages of the form:
@@ -44,36 +47,23 @@ class InstallerAgent(object):
 
         - user/agent : GitHub repository
         - git://path_to_repo : regular git repository
-    """        
+    """
 
-    def __init__(self):
-        self._listener = zoe.Listener(self, name="installer")
-
-    def start(self):
-        self._listener.start()
-
-    def stop(self):
-        self._listener.stop()
-
-    def receive(self, parser):
-        agent_name = parser.get("agent")
-        agent_source = parser.get("source")
-
-    def install(self, name, source):
+    @Message(tags = ["install"])
+    def install(self, ag_name, ag_source):
         """ Install new agent from source. """
-        temp = os.environ['ZOE_HOME'] + "temp/" + name
-        fetch_source = subprocess.call(["git", "clone", source, temp])
+        temp = os.environ['ZOE_HOME'] + "temp/" + ag_name
+        fetch_source = subprocess.call(["git", "clone", ag_source, temp])
 
         if fetch_source != 0:
             self._listener.log("installer", "info",
-                "Could not fetch source from " + source)
+                "Could not fetch source from " + ag_source)
             return
 
         agent_info = configparser.ConfigParser()
         agent_info.read(os.path.join(temp, "agent.zoe"))
 
-        for dst in agent_info['INSTALL']:
+        for dest in agent_info['INSTALL']:
             shutil.copytree(
-                os.path.join(temp + agent_info['INSTALL'][dst]),
-                os.path.join(os.environ['ZOE_HOME'], dst))
-       
+                os.path.join(temp + agent_info['INSTALL'][dest]),
+                os.path.join(os.environ['ZOE_HOME'], dest))      
