@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Zoe Agent Installer - https://github.com/RMed/zoe_agent_installer
+# Zoe Agent Manager - https://github.com/RMed/zoe_agent_manager
 #
 # Copyright (c) 2014 Rafael Medina García <rafamedgar@gmail.com>
 #
@@ -33,26 +33,21 @@ import zoe
 from zoe.deco import *
 
 
-@Agent(name = "installer")
-class InstallerAgent:
-    """ Installer Agent
-
-        This agent receives messages of the form:
-
-        agent=agent_name&source=agent_source
-
-        Where *agent_name* is the name of the agent and *agent_source*
-        the git repository from which to download the agent. It can be
-        presented in two ways:
-
-        - user/agent : GitHub repository
-        - git://path_to_repo : regular git repository
-    """
+@Agent(name = "manager")
+class AgentManager:
 
     @Message(tags = ["install"])
     def install(self, ag_name, ag_source):
-        """ Install new agent from source. """
-        temp = os.environ['ZOE_HOME'] + "temp/" + ag_name
+        """ Install new agent from source. 
+
+            - ag_name: name of the agent
+            - ag_source: the git repository from which to download the agent.
+                It can be presented in two ways:
+
+                user/agent : GitHub repository
+                git://path_to_repo : regular git repository
+        """
+        temp = os.path.join(os.environ['ZOE_HOME'], "temp", ag_name)
         fetch_source = subprocess.call(["git", "clone", ag_source, temp])
 
         if fetch_source != 0:
@@ -61,9 +56,10 @@ class InstallerAgent:
             return
 
         agent_info = configparser.ConfigParser()
-        agent_info.read(os.path.join(temp, "agent.zoe"))
+        agent_info.read(os.path.join(temp, "setup.zoe"))
 
+        self.logger.info("moviendo")
         for dest in agent_info['INSTALL']:
-            shutil.copytree(
-                os.path.join(temp + agent_info['INSTALL'][dest]),
-                os.path.join(os.environ['ZOE_HOME'], dest))      
+            shutil.move(
+                os.path.join(temp, agent_info['INSTALL'][dest]),
+                os.path.join(os.environ['ZOE_HOME'], dest))       
