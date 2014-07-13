@@ -1,0 +1,11 @@
+[INFO]
+Name = Agent Installer
+Description = A small agent installer for Zoe
+Author = Rafael Medina García
+Email = rafamedgar@gmail.com
+License = MIT
+Version = 0.0.1
+
+[INSTALL]
+agents = installer
+etc = conf/agent_installer.conf
