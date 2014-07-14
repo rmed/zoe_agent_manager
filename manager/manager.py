@@ -92,6 +92,12 @@ class AgentManager:
                 os.path.join(temp, a_setup["INSTALL"][dest]),
                 os.path.join(os.environ["ZOE_HOME"], dest))
 
+        # Make script executable
+        script = os.path.join(os.environ["ZOE_HOME"], "agents",
+            ag_name, a_setup["RUN"]["script"])
+        st = os.stat(script)
+        os.chmod(script, st.st_mode | stat.S_IEXEC)
+
         # Add agent to the zoe.conf file
         conf_path = os.path.join(os.environ["ZOE_HOME"], "etc", "zoe.conf")
         zconf = configparser.ConfigParser()
@@ -122,33 +128,23 @@ class AgentManager:
         print("Agent %s installed correctly." % ag_name)
 
         # Launch the agent
-        # TODO: downloaded files do not have
-        #self.launch_agent(ag_name)
+        self.launch_agent(ag_name, a_setup["RUN"]["script"])
 
         # Cleanup
-        shutil.rmtree(os.path.join(os.environ["ZOE_VAR"], "manager"))
+        self._clean_temp()
 
     @Message(tags = ["launch"])
-    def launch_agent(self, ag_name):
+    def launch_agent(self, ag_name, script):
         """ Launch an agent. """
         agent_dir = os.path.join(os.environ["ZOE_HOME"], "agents", ag_name)
         if not os.path.isdir(agent_dir):
-            print("Agent %s does not exist!" %ag_name)
-
-        # Get executable script
-        # Obtained from http://stackoverflow.com/a/8957768
-        executable = stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH
-        for filename in os.listdir(agent_dir):
-            if os.path.isfile(filename):
-                st = os.stat(filename)
-                mode = st.st_mode
-                if mode & executable:
-                    script = filename
+            print("Agent %s does not exist!" % ag_name)
 
         print("Launching agent %s..." % ag_name)
         log_path = os.path.join(os.environ["ZOE_LOGS"], ag_name + ".log")
         log_file = open(log_path, "w+")
-        proc = subprocess.Popen([os.path.join(agent_dir, script)], stdout=log_file, stderr=log_file)
+        proc = subprocess.Popen([os.path.join(agent_dir, script)],
+            stdout=log_file, stderr=log_file)
         print("Launched agent %s with PID %i" % (ag_name, proc.pid))
 
         pid_path = os.path.join(os.environ["ZOE_VAR"], ag_name + ".pid")
@@ -186,6 +182,13 @@ class AgentManager:
             return
 
         print("Stopped agent %s" % ag_name)
+
+    def _clean_temp(self):
+        """ Clean the temporal data stored in var/manager. """
+        try:
+            shutil.rmtree(os.path.join(os.environ["ZOE_VAR"], "manager"))
+        except:
+            pass
 
     def _fetch_source(self, ag_name):
         """ Download the source of the agent to var/manager/ag_name. """
