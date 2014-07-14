@@ -37,31 +37,59 @@ from zoe.deco import *
 @Agent(name = "manager")
 class AgentManager:
 
+    @Message(tags = ["add"])
+    def add(self, ag_name, ag_source):
+        """ Add an agent to the repository. """
+        rpath = os.path.join(os.environ["ZOE_HOME"], "etc", "agents_repo.conf")
+        repo = configparser.ConfigParser()
+        repo.read(rpath)
+
+        # Check if already installed
+        if ag_name in repo.sections():
+            if repo[ag_name]["installed"] == "1":
+                print("Agent %s is already installed" % ag_name)
+                return
+
+        repo.add_section(ag_name)
+        repo[ag_name]["source"] = str(ag_source)
+        repo[ag_name]["installed"] = "0"
+        repo[ag_name]["version"] = ""
+
+        with open(rpath, 'w') as repofile:
+            repo.write(repofile)
+
+        print("Added new agent %s to the repo" % ag_name)
+
     @Message(tags = ["install"])
-    def install(self, ag_name, ag_source):
-        """ Install new agent from source. 
+    def install(self, ag_name):
+        """ Install an agent from source. """
+        rpath = os.path.join(os.environ["ZOE_HOME"], "etc", "agents_repo.conf")
+        repo = configparser.ConfigParser()
+        repo.read(rpath)
 
-            - ag_name: name of the agent
-            - ag_source: the git repository from which to download the agent.
-                It can be presented in two ways:
-
-                user/agent : GitHub repository
-                git://path_to_repo : regular git repository
-        """
-        temp = os.path.join(os.environ["ZOE_VAR"], "manager", ag_name)
-        fetch_source = subprocess.call(["git", "clone", ag_source, temp])
-
-        if fetch_source != 0:
-            print("Could not fetch source from %s" % ag_source)
+        # Check if already installed
+        if ag_name in repo.sections():
+            if repo[ag_name]["installed"] == "1":
+                print("Agent %s is already installed" % ag_name)
+                return
+        else:
+            print("Agent not found in repository")
             return
 
-        agent_info = configparser.ConfigParser()
-        agent_info.read(os.path.join(temp, "setup.zoe"))
+        temp = os.path.join(os.environ["ZOE_VAR"], "manager", ag_name)
+        git_code = self._fetch_source(ag_name)
+
+        if git_code != 0:
+            print("Could not fetch source")
+            return
+
+        a_setup = configparser.ConfigParser()
+        a_setup.read(os.path.join(temp, "setup.zoe"))
 
         # Move agent files
-        for dest in agent_info["INSTALL"]:
+        for dest in a_setup["INSTALL"]:
             shutil.move(
-                os.path.join(temp, agent_info["INSTALL"][dest]),
+                os.path.join(temp, a_setup["INSTALL"][dest]),
                 os.path.join(os.environ["ZOE_HOME"], dest))
 
         # Add agent to the zoe.conf file
@@ -84,10 +112,18 @@ class AgentManager:
         with open(conf_path, 'w') as configfile:
             zconf.write(configfile)
 
+        # Update agent repo
+        repo[ag_name]["installed"] = "1"
+        repo[ag_name]["version"] = a_setup["INFO"]["version"]
+
+        with open(rpath, 'w') as repofile:
+            repo.write(repofile)
+
         print("Agent %s installed correctly." % ag_name)
 
         # Launch the agent
-        self.launch_agent(ag_name)
+        # TODO: downloaded files do not have
+        #self.launch_agent(ag_name)
 
         # Cleanup
         shutil.rmtree(os.path.join(os.environ["ZOE_VAR"], "manager"))
@@ -99,11 +135,10 @@ class AgentManager:
         if not os.path.isdir(agent_dir):
             print("Agent %s does not exist!" %ag_name)
 
-        script = None
         # Get executable script
         # Obtained from http://stackoverflow.com/a/8957768
         executable = stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH
-        for filename in os.listdir('.'):
+        for filename in os.listdir(agent_dir):
             if os.path.isfile(filename):
                 st = os.stat(filename)
                 mode = st.st_mode
@@ -111,11 +146,53 @@ class AgentManager:
                     script = filename
 
         print("Launching agent %s..." % ag_name)
-        log_file = open(os.path.join(os.environ["ZOE_LOGS"], ag_name + ".log"))
-        proc = subprocess.Popen([os.path.join(agent_dir, script)],
-                stdout=log_file, stderr=log_file)
+        log_path = os.path.join(os.environ["ZOE_LOGS"], ag_name + ".log")
+        log_file = open(log_path, "w+")
+        proc = subprocess.Popen([os.path.join(agent_dir, script)], stdout=log_file, stderr=log_file)
         print("Launched agent %s with PID %i" % (ag_name, proc.pid))
 
         pid_path = os.path.join(os.environ["ZOE_VAR"], ag_name + ".pid")
         with open(pid_path, "w+") as pf:
             print(proc.pid, file=pf)
+
+    @Message(tags = ["remove"])
+    def remove(self, ag_name):
+        """ Remove an agent from the agent repository. """
+        rpath = os.path.join(os.environ["ZOE_HOME"], "etc", "agents_repo.conf")
+        repo = configparser.ConfigParser()
+        repo.read(rpath)
+
+        # Check if installed
+        if ag_name in repo.sections():
+            if repo[ag_name]["installed"] == "0":
+                print("Agent %s is not installed" % ag_name)
+                return
+        else:
+            print("Cannot find agent %s in the repository" % ag_name)
+
+    @Message(tags = ["stop"])
+    def stop_agent(self, ag_name):
+        """ Stop an agent's execution. """
+        pid_path = os.path.join(os.environ["ZOE_VAR"], ag_name + ".pid")
+        if not os.path.isfile(pid_path):
+            print("Agent %s is not running" % ag_name)
+
+        with open(pid_path, "r") as pf:
+            pid = str(int(pf.read()))
+
+        killed = subprocess.call(["kill", pid])
+        if killed != 0:
+            print("Oops, something happened while stopping %s" % ag_name)
+            return
+
+        print("Stopped agent %s" % ag_name)
+
+    def _fetch_source(self, ag_name):
+        """ Download the source of the agent to var/manager/ag_name. """
+        temp = os.path.join(os.environ["ZOE_VAR"], "manager", ag_name)
+        rpath = os.path.join(os.environ["ZOE_HOME"], "etc", "agents_repo.conf")
+        repo = configparser.ConfigParser()
+        repo.read(rpath)
+
+        source = repo[ag_name]["source"]
+        return subprocess.call(["git", "clone", source, temp])

@@ -1,10 +1,11 @@
 [INFO]
-Name = manager
-Description = A small agent manager for Zoe
-Author = Rafael Medina García
-Email = rafamedgar@gmail.com
-License = MIT
-Version = 0.0.1
+name = manager
+description = A small agent manager for Zoe
+author = Rafael Medina García
+email = rafamedgar@gmail.com
+license = MIT
+version = 0.0.1
+source = 
 
 [INSTALL]
 agents = manager
