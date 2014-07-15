@@ -1,7 +1,7 @@
 Zoe Agent Manager
 =================
 
-A simple agent manager for Zoe.
+An agent manager for Zoe.
 
 **status:** In development / testing
 
