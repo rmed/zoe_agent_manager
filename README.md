@@ -20,6 +20,14 @@ manager/ ~> agents/manager
 conf/agents_repo.conf ~> etc/agents_repo.conf
 ```
 
+Edit the **etc/agents_repo.conf** file and add the following:
+
+```
+data = ZOE_HOME/agents/manager;ZOE_HOME/etc/agents_repo.conf
+```
+
+Where *ZOE_HOME* is the absolute path to the root directory in which Zoe is located.
+
 And add the following to the **etc/zoe.conf** file (you can choose the port):
 
 ```
