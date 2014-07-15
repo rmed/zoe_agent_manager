@@ -71,7 +71,7 @@ class AgentManager:
         repo = self.read_repo()
 
         if name not in repo.sections():
-            print("Agent not found in repository")
+            print("Cannot find agent %s in the repository" % name)
             return
 
         if self.installed(name):
@@ -91,10 +91,10 @@ class AgentManager:
         # Move agent files
         data_list = []
         for dest in a_setup["INSTALL"]:
-            shutil.move(
+            # In Python >= 3.3, shutil.move returns the dst path
+            data_list.append(shutil.move(
                 os.path.join(temp, a_setup["INSTALL"][dest]),
-                os.path.join(os.environ["ZOE_HOME"], dest))
-            data_list.append(os.path.join(os.environ["ZOE_HOME"], dest))
+                os.path.join(os.environ["ZOE_HOME"], dest)))
 
         # Make script executable
         script = os.path.join(os.environ["ZOE_HOME"], "agents",
@@ -131,11 +131,11 @@ class AgentManager:
 
         print("Agent %s installed correctly." % name)
 
-        # Launch the agent
-        self.launch(name, a_setup["RUN"]["script"])
-
         # Cleanup
         self.clean()
+
+        # Launch the agent (and register it)
+        return self.launch(name, a_setup["RUN"]["script"])
 
     @Message(tags = ["launch"])
     def launch(self, name, script):
@@ -150,24 +150,75 @@ class AgentManager:
         log_file = open(log_path, "w+")
         proc = subprocess.Popen([os.path.join(agent_dir, script)],
             stdout=log_file, stderr=log_file)
-        print("Launched agent %s with PID %i" % (name, proc.pid))
 
         pid_path = os.path.join(os.environ["ZOE_VAR"], name + ".pid")
         with open(pid_path, "w+") as pf:
             print(proc.pid, file=pf)
 
+        conf_path = os.path.join(os.environ["ZOE_HOME"], "etc", "zoe.conf")
+        zconf = configparser.ConfigParser()
+        zconf.read(conf_path)
+
+        # Force the agent to register
+        port = zconf["agent " + name]["port"]
+        msg = { "dst":"server", 
+                "tag":"register",
+                "name":name, 
+                "host":os.environ["ZOE_SERVER_HOST"], 
+                "port":port }
+
+        return zoe.MessageBuilder(msg)
+
+    @Message(tags = ["purge"])
+    def purge(self, name):
+        """ Remove an agent's data files. """
+        repo = self.read_repo()
+        if not name in repo.sections():
+            print("Cannot find agent %s in the repository" % name)
+            return
+
+        if self.installed(name):
+            print("Agent %s is installed, uninstall it first" % name)
+            return
+
+        if self.running(name):
+            self.stop(name)
+
+        data = [d.strip() for d in repo[name]["data"].split(";")]
+
+        for d in data:
+            print("Removing %s" % d)
+            try:
+                if os.path.isfile(d):
+                    os.remove(d)
+                else:
+                    shutil.rmtree(d)
+            except:
+                # Nothing to remove?
+                pass
+
+        repo[name]["data"] = ""
+        self.write_repo(repo)
+
+        print("Agent %s purged" % name)
+
     @Message(tags = ["remove"])
     def remove(self, name):
-        """ Remove an agent from the agent repository. """
+        """ Remove an agent from the agent repository.
+
+            Also purges the data files.
+        """
         repo = self.read_repo()
 
         if name not in repo.sections():
             print("Cannot find agent %s in the repository" % name)
             return
 
-        if repo[name]["installed"] == "1":
+        if self.installed(name):
             print("Agent %s is installed, uninstall it first" % name)
             return
+
+        self.purge(name)
 
         repo.remove_section(name)
         self.write_repo(repo)
@@ -206,6 +257,18 @@ class AgentManager:
         if self.running(name):
             self.stop(name)
 
+        # Remove from zoe.conf
+        conf_path = os.path.join(os.environ["ZOE_HOME"], "etc", "zoe.conf")
+        zconf = configparser.ConfigParser()
+        zconf.read(conf_path)
+
+        if "agent " + name in zconf.sections():
+            zconf.remove_section("agent " + name)
+
+        with open(conf_path, 'w') as configfile:
+            zconf.write(configfile)
+
+        # Remove from agents directory
         ag_path = os.path.join(os.environ["ZOE_HOME"], "agents", name)
         shutil.rmtree(ag_path)
 
