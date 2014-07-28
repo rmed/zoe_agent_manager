@@ -183,6 +183,18 @@ class AgentManager:
             proc = subprocess.call([postinst,])
             print("Ran postinst script, got code %i" % proc)
 
+        # Store config files list (if any)
+        info_conf = path(temp, "zam", "conf")
+        if os.path.isfile(info_conf):
+            conflist = []
+            with open(info_conf, "r") as conffile:
+                for c in conffile.read().splitlines():
+                    conflist.append(path(env["ZOE_HOME"], c))
+
+            with open(path(ZAM_INFO, name + ".conffiles"), "w+") as stored_conf:
+                for c in conflist:
+                    stored_conf.write("%s\n" % c)
+
         # Cleanup
         self.clean()
 
@@ -225,29 +237,26 @@ class AgentManager:
     def purge(self, name):
         """ Remove an agent's configuration files. """
         alist = self.read_list()
-        if not name in alist.sections():
-            print("Cannot find agent %s in the list" % name)
-            return
+        
+        # Uninstall the agent
+        self.remove(name)
 
-        if self.installed(name):
-            print("Agent %s is installed, uninstall it first" % name)
-            return
-
+        # Remove config files
         confpath = path(ZAM_INFO, name + ".conffiles")
         if not os.path.isfile(confpath):
-            print("Nothing to remove")
+            print("Agent %s has no config files" % name)
             return
 
-        with open(confpath, "r") as conffile:
-            c_list = conffile.readlines()
-        
-        for c in c_list:
-            print("Removing %s" % d)
-            try:
-                os.remove(c)
-            except:
-                # Nothing to remove?
-                pass
+        with open(confpath, "r") as conflist:
+            for c in conflist.read().splitlines():
+                print("Removing %s" % c)
+                try:
+                    os.remove(c)
+                except:
+                    # Nothing to remove?
+                    pass
+
+        os.remove(confpath)
 
         print("Agent %s purged" % name)
 
@@ -290,6 +299,8 @@ class AgentManager:
                     shutil.rmtree(dirs[0])
                     dirs = os.path.split(dirs[0])
 
+        os.remove(alist_path)
+
         # Update agent list
         alist = self.read_list()
         alist[name]["installed"] = "0"
@@ -297,6 +308,24 @@ class AgentManager:
         self.write_list(alist)
 
         print("Agent %s uninstalled" % name)
+
+    @Message(tags = ["forget"])
+    def remove_list(self, name):
+        """ Remove an agent from the agent list.
+
+            The agent must be uninstalled first, and means that in order to
+            install it again, the source must be provided.
+        """
+        if self.installed(name):
+            print("Agent %s is installed, uninstall it first" % name)
+            return
+
+        alist = self.read_list()
+        if name in alist.sections():
+            alist.remove_section(name)
+            self.write_list(alist)
+
+        print("Removed agent %s from agent list" % name)
 
     @Message(tags = ["stop"])
     def stop(self, name):
