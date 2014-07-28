@@ -251,26 +251,6 @@ class AgentManager:
 
         print("Agent %s purged" % name)
 
-    @Message(tags = ["stop"])
-    def stop(self, name):
-        """ Stop an agent's execution. """
-        pid_path = path(env["ZOE_VAR"], name + ".pid")
-        if not self.running(name):
-            print("Agent %s is not running" % name)
-            return
-
-        with open(pid_path, "r") as pf:
-            pid = str(int(pf.read()))
-
-        killed = subprocess.call(["kill", pid])
-        if killed != 0:
-            print("Oops, something happened while stopping %s" % name)
-            return
-
-        os.remove(pid_path)
-
-        print("Stopped agent %s" % name)
-
     @Message(tags = ["remove"])
     def remove(self, name):
         """ Uninstall an agent.
@@ -293,13 +273,13 @@ class AgentManager:
         if "agent " + name in zconf.sections():
             zconf.remove_section("agent " + name)
 
-        with open(conf_path, 'w') as configfile:
+        with open(conf_path, "w") as configfile:
             zconf.write(configfile)
 
         # Remove agent files and directories
         alist_path = path(ZAM_INFO, name + ".list")
         with open(alist_path, "r") as alist:
-            for l in alist.readlines():
+            for l in alist.read().splitlines():
                 # Remove final file
                 os.remove(l)
                 # Remove the tree that was generated in the installation
@@ -307,10 +287,36 @@ class AgentManager:
                 while dirs[0] != "/":
                     if os.listdir(dirs[0]):
                         break    
-                    os.rmtree(dirs[0])
+                    shutil.rmtree(dirs[0])
                     dirs = os.path.split(dirs[0])
 
+        # Update agent list
+        alist = self.read_list()
+        alist[name]["installed"] = "0"
+        alist[name]["version"] = ""
+        self.write_list(alist)
+
         print("Agent %s uninstalled" % name)
+
+    @Message(tags = ["stop"])
+    def stop(self, name):
+        """ Stop an agent's execution. """
+        pid_path = path(env["ZOE_VAR"], name + ".pid")
+        if not self.running(name):
+            print("Agent %s is not running" % name)
+            return
+
+        with open(pid_path, "r") as pf:
+            pid = str(int(pf.read()))
+
+        killed = subprocess.call(["kill", pid])
+        if killed != 0:
+            print("Oops, something happened while stopping %s" % name)
+            return
+
+        os.remove(pid_path)
+
+        print("Stopped agent %s" % name)
 
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
