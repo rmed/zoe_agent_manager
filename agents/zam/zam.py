@@ -34,6 +34,7 @@ from configparser import ConfigParser
 from io import StringIO
 from os import environ as env
 from os.path import join as path
+from semantic_version import Version
 from zoe.deco import *
 
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
@@ -112,27 +113,7 @@ class AgentManager:
 
         # INSTALL
         # Generate list of source files
-        src_list = []
-        for d in os.listdir(temp):
-            if os.path.isdir(path(temp, d)) and d not in [".git", "zam"]:
-                subdir = path(temp, d)
-                for root, dirs, files in os.walk(subdir):
-                    for f in files:
-                        src_list.append(path(root, f))
-
-        # Move files to their location
-        file_list = []
-        for src in src_list:
-            stripped = src.replace(temp + "/", "")
-            dst = os.path.dirname(path(env["ZOE_HOME"], stripped))
-            
-            try:
-                os.makedirs(dst)
-            except:
-                # Tree already exists?
-                pass
-            
-            file_list.append(shutil.move(src, dst))
+        file_list = self.move_files(temp)
 
         # Save agent file list
         with open(path(ZAM_INFO, name + ".list"), "w+") as dfile:
@@ -199,7 +180,7 @@ class AgentManager:
         self.clean()
 
         # Launch the agent (and register it)
-        return self.launch(name, a_info["info"]["script"])
+        return self.launch(name, os.path.split(script)[1])
 
     @Message(tags = ["launch"])
     def launch(self, name, script):
@@ -217,7 +198,7 @@ class AgentManager:
 
         pid_path = path(env["ZOE_VAR"], name + ".pid")
         with open(pid_path, "w+") as pf:
-            print(proc.pid, file=pf)
+            df.write(proc.pid)
 
         conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
         zconf = ConfigParser()
@@ -347,6 +328,79 @@ class AgentManager:
 
         print("Stopped agent %s" % name)
 
+    @Message(tags = ["update"])
+    def update(self, name):
+        """ Update an installed agent. """
+        if not self.installed(name):
+            print("Agent %s is not installed" % name)
+            return
+
+        alist = self.read_list()
+
+        # Get source
+        temp = path(ZAM_TEMP, name)
+        git_code = self.fetch(name, alist[name]["source"])
+
+        if git_code != 0:
+            print("Could not fetch source")
+            self.clean()
+            return
+
+        # Parse version
+        info_path = path(temp, "zam", "info")
+        a_info = ConfigParser()
+        a_info.read_string(StringIO(
+            "[info]\n%s" % open(info_path).read()).read())
+
+        remote_ver = Version(a_info["info"]["version"])
+        local_ver = Version(alist[name]["version"])
+
+        if remote_ver <= local_ver:
+            print("Agent %s is already up-to-date" % name)
+            return
+
+        # PREUPDATE
+        preupd = path(temp, "zam", "preupd")
+        if os.path.isfile(preupd):
+            st = os.stat(preupd)
+            os.chmod(preupd, st.st_mode | stat.S_IEXEC)
+            proc = subprocess.call([preupd,])
+            print("Ran preupd script, got code %i" % proc)
+
+        # UPDATE
+        # Move files
+        file_list = self.move_files(temp)
+
+        # Save agent file list
+        with open(path(ZAM_INFO, name + ".list"), "w+") as dfile:
+            for f in file_list:
+                dfile.write("%s\n" % f)
+
+        # Make script executable
+        script = path(env["ZOE_HOME"], "agents",
+            name, a_info["info"]["script"])
+        st = os.stat(script)
+        os.chmod(script, st.st_mode | stat.S_IEXEC)
+
+        # Update version
+        alist[name]["version"] = str(remote_ver)
+        self.write_list(alist)
+
+        # POSTUPDATE
+        postupd = path(temp, "zam", "postupd")
+        if os.path.isfile(postupd):
+            st = os.stat(postupd)
+            os.chmod(postupd, st.st_mode | stat.S_IEXEC)
+            proc = subprocess.call([postupd,])
+            print("Ran postupd script, got code %i" % proc)
+
+        # Cleanup
+        self.clean()
+
+        # Restart the agent
+        self.stop(name)
+        return self.launch(name, os.path.split(script)[1])
+
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
         temp = path(ZAM_TEMP, name)
@@ -371,6 +425,38 @@ class AgentManager:
                 return True
 
         return False
+
+    def move_files(self, source_dir):
+        """ Move the files and directories to their corresponding ZOE_HOME
+            counterpart.
+
+            To be used only by install() and update()
+
+            Returns the destination file list
+        """
+        # Generate list of source files
+        src_list = []
+        for d in os.listdir(source_dir):
+            if os.path.isdir(path(source_dir, d)) and d not in [".git", "zam"]:
+                subdir = path(source_dir, d)
+                for root, dirs, files in os.walk(subdir):
+                    for f in files:
+                        src_list.append(path(root, f))
+
+        # Move files to their location
+        file_list = []
+        for src in src_list:
+            dst = src.replace(source_dir + "/", env["ZOE_HOME"])
+            
+            try:
+                os.makedirs(dst)
+            except:
+                # Tree already exists?
+                pass
+            
+            file_list.append(shutil.move(src, dst))
+
+        return file_list
 
     def read_list(self):
         """ Read the agent list.
