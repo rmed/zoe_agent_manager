@@ -449,21 +449,18 @@ class AgentManager:
                     for f in files:
                         src_list.append(path(root, f))
 
-        print(src_list)
-        # Generate list of destination files
-        dst_list = []
-        for src in src_list:
-            stripped = src.replace(source_dir + "/", "")
-            dst_list.append(os.path.dirname(path(env["ZOE_HOME"], stripped)))
-
         if updating:
+            # Diff list
+            for src in src_list:
+                diff_list = []
+                stripped = src.replace(source_dir + "/", "")
+                diff_list.append(path(env["ZOE_HOME"], stripped))
+
             # Compare file lists and remove those not present in the update
             alist_path = path(ZAM_INFO, name + ".list")
             with open(alist_path, "r") as alist:
-                print(alist.read().splitlines())
-                print(dst_list)
                 for l in alist.read().splitlines():
-                    if l not in dst_list:
+                    if l not in diff_list:
                         # Remove final file
                         os.remove(l)
                         # Remove the generated tree
@@ -476,14 +473,17 @@ class AgentManager:
 
         # Move files
         file_list = []
-        for dst in dst_list:
+        for src in src_list:
+            stripped = src.replace(source_dir + "/", "")
+            dst = os.path.dirname(path(env["ZOE_HOME"], stripped))
+            
             try:
                 os.makedirs(dst)
             except:
                 # Tree already exists?
                 pass
-        
-            file_list.append(shutil.move(src, dst))
+            
+            file_list.append(shutil.copy(src, dst))
 
         return file_list
 
