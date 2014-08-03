@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Install the semantic_version package
+pip install -t ${ZOE_HOME}/lib/python semantic_version
