@@ -89,6 +89,8 @@ class AgentManager:
                 self.add(name, source)
                 alist = self.read_list()
 
+        self.clean()
+
         temp = path(ZAM_TEMP, name)
         git_code = self.fetch(name, source)
 
@@ -113,7 +115,7 @@ class AgentManager:
 
         # INSTALL
         # Generate list of source files
-        file_list = self.move_files(temp)
+        file_list = self.move_files(name)
 
         # Save agent file list
         with open(path(ZAM_INFO, name + ".list"), "w+") as dfile:
@@ -198,7 +200,7 @@ class AgentManager:
 
         pid_path = path(env["ZOE_VAR"], name + ".pid")
         with open(pid_path, "w+") as pf:
-            df.write(proc.pid)
+            pf.write(str(proc.pid))
 
         conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
         zconf = ConfigParser()
@@ -337,6 +339,8 @@ class AgentManager:
 
         alist = self.read_list()
 
+        self.clean()
+
         # Get source
         temp = path(ZAM_TEMP, name)
         git_code = self.fetch(name, alist[name]["source"])
@@ -369,7 +373,7 @@ class AgentManager:
 
         # UPDATE
         # Move files
-        file_list = self.move_files(temp)
+        file_list = self.move_files(name, True)
 
         # Save agent file list
         with open(path(ZAM_INFO, name + ".list"), "w+") as dfile:
@@ -426,7 +430,7 @@ class AgentManager:
 
         return False
 
-    def move_files(self, source_dir):
+    def move_files(self, name, updating=False):
         """ Move the files and directories to their corresponding ZOE_HOME
             counterpart.
 
@@ -434,6 +438,8 @@ class AgentManager:
 
             Returns the destination file list
         """
+        source_dir = path(ZAM_TEMP, name)
+
         # Generate list of source files
         src_list = []
         for d in os.listdir(source_dir):
@@ -443,17 +449,40 @@ class AgentManager:
                     for f in files:
                         src_list.append(path(root, f))
 
-        # Move files to their location
-        file_list = []
+        print(src_list)
+        # Generate list of destination files
+        dst_list = []
         for src in src_list:
-            dst = src.replace(source_dir + "/", env["ZOE_HOME"])
-            
+            stripped = src.replace(source_dir + "/", "")
+            dst_list.append(os.path.dirname(path(env["ZOE_HOME"], stripped)))
+
+        if updating:
+            # Compare file lists and remove those not present in the update
+            alist_path = path(ZAM_INFO, name + ".list")
+            with open(alist_path, "r") as alist:
+                print(alist.read().splitlines())
+                print(dst_list)
+                for l in alist.read().splitlines():
+                    if l not in dst_list:
+                        # Remove final file
+                        os.remove(l)
+                        # Remove the generated tree
+                        dirs = os.path.split(l)
+                        while dirs[0] != "/":
+                            if os.listdir(dirs[0]):
+                                break    
+                            shutil.rmtree(dirs[0])
+                            dirs = os.path.split(dirs[0])
+
+        # Move files
+        file_list = []
+        for dst in dst_list:
             try:
                 os.makedirs(dst)
             except:
                 # Tree already exists?
                 pass
-            
+        
             file_list.append(shutil.move(src, dst))
 
         return file_list
