@@ -2,3 +2,13 @@
 
 # Install the semantic_version package
 pip install -t ${ZOE_HOME}/lib/python semantic_version
+
+# Create additional directories
+mkdir ${ZOE_HOME}/etc/zam
+mkdir ${ZOE_HOME}/etc/zam/info
+
+# Create the agent list
+echo "[zam]
+source = https://github.com/rmed/zoe_agent_manager.git
+installed = 1
+version = 0.2.0" > ${ZOE_HOME}/etc/zam/list

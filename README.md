@@ -13,49 +13,53 @@ This agent requires **git** in order to work.
 Installation
 ------------
 
-In order to install the agent, clone or download the source code in this repository and move the following files and directories accordingly (paths relative to the Zoe root):
+- Clone or download the source code from this repository and move the `agents` directory into `ZOE_HOME/`
+
+- And add the following to the **etc/zoe.conf** file (you can choose the port):
 
 ```
-manager/ ~> agents/manager
-conf/agents_repo.conf ~> etc/agents_repo.conf
-```
-
-Edit the **etc/agents_repo.conf** file and add the following:
-
-```
-data = ZOE_HOME/agents/manager;ZOE_HOME/etc/agents_repo.conf
-```
-
-Where *ZOE_HOME* is the absolute path to the root directory in which Zoe is located.
-
-And add the following to the **etc/zoe.conf** file (you can choose the port):
-
-```
-[agent manager]
+[agent zam]
 port = YOUR_PORT
 ```
 
-Next time you start the server, the agent will be up and running.
+- Open a terminal in the directory in which you downloaded the source and run the following:
+
+```shell
+$ export ZOE_HOME=PATH_TO_YOUR_ZOE_INSTALLATION
+
+$ chmod +x zam/preinst
+
+$ zam/preinst
+```
+
+This will download the dependencies and create the configuration directories.
+
+- Next time you start the server, the agent should be up and running.
 
 What can the agent do?
 ----------------------
 
-First of all, the *etc/agents_repo.conf* file will contain information on the agents you install (such as name, where to find the source code for installation, version, etc.)
+The `etc/zam/` directory contains the agent's configuration files, including a list of agents and their files.
+
+- The `etc/zam/list` file is a list of agents for which the source URL is known and their status (installed, version).
+
+- The `etc/zam/info` directory can contain two types of files: the `*.conffiles` contain a list of configuration files for the agent. These files will only be removed if the agent is uninstalled using `purge`. The `*.list` contain a list of regular files for the agent. These files are removed when uninstalling an agent normally.
 
 Now, for a proper list of actions:
 
-- **Add** an agent to the repository (without installing)
-- **Clean** the temporary directory
-- **Install** an agent (need to add it first!)
-- **Launch** an agent (done automatically when an agent is installed)
-- **Purge** an agent's data files (if any)
-- **Remove** an agent from the repository
-- **Stop** a running agent
-- **Uninstall** an agent
+- `add` an agent to the repository (without installing)
+- `clean` the temporary directory
+- `install` an agent
+- `launch` an agent (done automatically when an agent is installed)
+- `purge` an agent, removing/uninstalling it and all its configuration files
+- `remove/uninstall` an agent
+- `remove` an agent from the agent list
+- `stop` a running agent
+- `update` an agent
 
-For examples and more information on the commands, please check the wiki.
+For examples and more information on the commands, please [check the wiki](https://github.com/rmed/zoe_agent_manager/wiki).
 
 That's nice, but how do I make my agent installable?
 ----------------------------------------------------
 
-Again, check the wiki :)
+Again, [check the wiki](https://github.com/rmed/zoe_agent_manager/wiki/Making-an-installable-agent) :)
