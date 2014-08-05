@@ -13,14 +13,7 @@ This agent requires **git** in order to work.
 Installation
 ------------
 
-- Clone or download the source code from this repository and move the `agents` directory into `ZOE_HOME/`
-
-- And add the following to the **etc/zoe.conf** file (you can choose the port):
-
-```
-[agent zam]
-port = YOUR_PORT
-```
+- Clone or download the source code from this repository.
 
 - Open a terminal in the directory in which you downloaded the source and run the following:
 
@@ -33,6 +26,15 @@ $ zam/preinst
 ```
 
 This will download the dependencies and create the configuration directories.
+
+- Move the `agents` directory into `ZOE_HOME/`
+
+- Add the following to the **etc/zoe.conf** file (you can choose the port):
+
+```
+[agent zam]
+port = YOUR_PORT
+```
 
 - Next time you start the server, the agent should be up and running.
 
