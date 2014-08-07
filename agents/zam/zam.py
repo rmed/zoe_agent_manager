@@ -72,6 +72,24 @@ class AgentManager:
             # Nothing to remove?
             pass
 
+    @Message(tags = ["forget"])
+    def forget(self, name):
+        """ Remove an agent from the agent list.
+
+            The agent must be uninstalled first, and means that in order to
+            install it again, the source must be provided.
+        """
+        if self.installed(name):
+            print("Agent %s is installed, uninstall it first" % name)
+            return
+
+        alist = self.read_list()
+        if name in alist.sections():
+            alist.remove_section(name)
+            self.write_list(alist)
+
+        print("Removed agent %s from agent list" % name)
+
     @Message(tags = ["install"])
     def install(self, name, source=None):
         """ Install an agent from source. """
@@ -291,24 +309,6 @@ class AgentManager:
         self.write_list(alist)
 
         print("Agent %s uninstalled" % name)
-
-    @Message(tags = ["forget"])
-    def remove_list(self, name):
-        """ Remove an agent from the agent list.
-
-            The agent must be uninstalled first, and means that in order to
-            install it again, the source must be provided.
-        """
-        if self.installed(name):
-            print("Agent %s is installed, uninstall it first" % name)
-            return
-
-        alist = self.read_list()
-        if name in alist.sections():
-            alist.remove_section(name)
-            self.write_list(alist)
-
-        print("Removed agent %s from agent list" % name)
 
     @Message(tags = ["stop"])
     def stop(self, name):
