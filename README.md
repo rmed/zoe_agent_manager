@@ -25,9 +25,11 @@ $ chmod +x zam/preinst
 $ zam/preinst
 ```
 
-This will download the dependencies and create the configuration directories.
+This will download the dependencies and create the configuration directories. Check that the `etc/zam/list` file contains **only one entry** named `[zam]`.
 
 - Move the `agents` directory into `ZOE_HOME/`
+
+- Move the `cmdproc` directory into `ZOE_HOME/`
 
 - Add the following to the **etc/zoe.conf** file (you can choose the port):
 
@@ -56,6 +58,7 @@ Now, for a proper list of actions:
 - `purge` an agent, removing/uninstalling it and all its configuration files
 - `remove/uninstall` an agent
 - `remove` an agent from the agent list
+- `restart` a running agent
 - `stop` a running agent
 - `update` an agent
 
