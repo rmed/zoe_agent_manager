@@ -170,7 +170,7 @@ sub remove {
 #
 # Restart an agent
 #
-sub stop {
+sub restart {
   print("message dst=zam&tag=restart&name=$strings[0]\n");
 }
 
