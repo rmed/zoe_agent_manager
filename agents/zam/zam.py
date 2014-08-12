@@ -79,11 +79,12 @@ class AgentManager:
             The agent must be uninstalled first, and means that in order to
             install it again, the source must be provided.
         """
-        if self.installed(name):
+        alist = self.read_list()
+
+        if self.installed(name, alist):
             print("Agent %s is installed, uninstall it first" % name)
             return
 
-        alist = self.read_list()
         if name in alist.sections():
             alist.remove_section(name)
             self.write_list(alist)
@@ -95,7 +96,7 @@ class AgentManager:
         """ Install an agent from source. """
         alist = self.read_list()
 
-        if self.installed(name):
+        if self.installed(name, alist):
             print("Agent %s is already installed" % name)
             return
 
@@ -272,7 +273,9 @@ class AgentManager:
             Any additional files (such as configuration files) are kept
             in case the agent is installed again.
         """
-        if not self.installed(name):
+        alist = self.read_list()
+
+        if not self.installed(name, alist):
             print("Agent %s is not installed" % name)
             return
 
@@ -291,9 +294,9 @@ class AgentManager:
             zconf.write(configfile)
 
         # Remove agent files and directories
-        alist_path = path(ZAM_INFO, name + ".list")
-        with open(alist_path, "r") as alist:
-            for l in alist.read().splitlines():
+        flist_path = path(ZAM_INFO, name + ".list")
+        with open(flist_path, "r") as flist:
+            for l in flist.read().splitlines():
                 # Remove final file
                 os.remove(l)
                 # Remove the tree that was generated in the installation
@@ -304,10 +307,9 @@ class AgentManager:
                     shutil.rmtree(dirs[0])
                     dirs = os.path.split(dirs[0])
 
-        os.remove(alist_path)
+        os.remove(flist_path)
 
         # Update agent list
-        alist = self.read_list()
         alist[name]["installed"] = "0"
         alist[name]["version"] = ""
         self.write_list(alist)
@@ -343,11 +345,11 @@ class AgentManager:
     @Message(tags = ["update"])
     def update(self, name):
         """ Update an installed agent. """
-        if not self.installed(name):
+        alist = self.read_list()
+
+        if not self.installed(name, alist):
             print("Agent %s is not installed" % name)
             return
-
-        alist = self.read_list()
 
         self.clean()
 
@@ -435,10 +437,8 @@ class AgentManager:
 
         return subprocess.call(["git", "clone", src, temp])
 
-    def installed(self, name):
+    def installed(self, name, alist):
         """ Check if an agent is installed or not. """
-        alist = self.read_list()
-
         if name in alist.sections():
             if alist[name]["installed"] == "1":
                 return True
