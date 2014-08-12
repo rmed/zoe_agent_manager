@@ -11,4 +11,8 @@ mkdir ${ZOE_HOME}/etc/zam/info
 echo "[zam]
 source = https://github.com/rmed/zoe_agent_manager.git
 installed = 1
-version = 0.2.0" > ${ZOE_HOME}/etc/zam/list
+version = 0.3.0" > ${ZOE_HOME}/etc/zam/list
+
+# Create file list (used for updates)
+echo "${ZOE_HOME}/agents/zam/zam.py
+${ZOE_HOME}/cmdproc/zam.pl" > ${ZOE_HOME}/etc/zam/info/zam.list
