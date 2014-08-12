@@ -36,6 +36,7 @@ my $installsrc;
 my $launch;
 my $purge;
 my $remove;
+my $restart;
 my $stop;
 my $update;
 my @strings;
@@ -50,6 +51,7 @@ GetOptions("get" => \$get,
            "l" => \$launch,
            "p" => \$purge,
            "r" => \$remove,
+           "rs" => \$restart,
            "s" => \$stop,
            "u" => \$update,
            "string=s" => \@strings);
@@ -72,6 +74,8 @@ if ($get) {
   &purge;
 } elsif ($run and $remove) {
   &remove;
+} elsif ($run and $restart) {
+  &restart;
 } elsif ($run and $stop) {
   &stop;
 } elsif ($run and $update) {
@@ -90,6 +94,7 @@ sub get {
   print("--l launch /the agent <string>\n");
   print("--p purge /the agent <string>\n");
   print("--r remove/uninstall /the agent <string>\n");
+  print("--rs restart /the agent <string>\n");
   print("--s stop /the agent <string>\n");
   print("--u update /the agent <string>\n");
   
@@ -101,6 +106,7 @@ sub get {
   print("--l lanza /el agente <string>\n");
   print("--p purga /el agente <string>\n");
   print("--r borra/desinstala /el agente <string>\n");
+  print("--rs reinicia /el agente <string>\n");
   print("--s para/detén /el agente <string>\n");
   print("--u actualiza /el agente <string>\n");
 }
@@ -160,6 +166,14 @@ sub purge {
 sub remove {
   print("message dst=zam&tag=remove&name=$strings[0]\n");
 }
+
+#
+# Restart an agent
+#
+sub restart {
+  print("message dst=zam&tag=restart&name=$strings[0]\n");
+}
+
 
 #
 # Stop an agent
