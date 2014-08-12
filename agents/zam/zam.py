@@ -206,26 +206,24 @@ class AgentManager:
         self.clean()
 
         # Launch the agent (and register it)
-        return self.launch(name, os.path.split(script)[1])
+        #return self.launch(name, os.path.split(script)[1])
+        return self.launch(name)
 
     @Message(tags = ["launch"])
-    def launch(self, name, script):
+    def launch(self, name):
         """ Launch an agent. """
         agent_dir = path(env["ZOE_HOME"], "agents", name)
         if not os.path.isdir(agent_dir):
             print("Agent %s does not exist!" % name)
             return
 
-        print("Launching agent %s..." % name)
-        log_path = path(env["ZOE_LOGS"], name + ".log")
-        log_file = open(log_path, "w+")
-        proc = subprocess.Popen([path(agent_dir, script)],
-            stdout=log_file, stderr=log_file)
+        # Redirect stdout and stderr to zam's log
+        log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
+        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+            "launch-agent", name], stdout=log_file, stderr=log_file,
+            cwd=env["ZOE_HOME"])
 
-        pid_path = path(env["ZOE_VAR"], name + ".pid")
-        with open(pid_path, "w+") as pf:
-            pf.write(str(proc.pid))
-
+        
         conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
         zconf = ConfigParser()
         zconf.read(conf_path)
@@ -316,25 +314,31 @@ class AgentManager:
 
         print("Agent %s uninstalled" % name)
 
-    @Message(tags = ["stop"])
-    def stop(self, name):
-        """ Stop an agent's execution. """
-        pid_path = path(env["ZOE_VAR"], name + ".pid")
+    @Message(tags = ["restart"])
+    def restart(self, name):
+        """ Restart an agent. """
         if not self.running(name):
             print("Agent %s is not running" % name)
             return
 
-        with open(pid_path, "r") as pf:
-            pid = str(int(pf.read()))
+        # Redirect stdout and stderr to zam's log
+        log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
+        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+            "restart-agent", name], stdout=log_file, stderr=log_file,
+            cwd=env["ZOE_HOME"])
 
-        killed = subprocess.call(["kill", pid])
-        if killed != 0:
-            print("Oops, something happened while stopping %s" % name)
+    @Message(tags = ["stop"])
+    def stop(self, name):
+        """ Stop an agent's execution. """
+        if not self.running(name):
+            print("Agent %s is not running" % name)
             return
 
-        os.remove(pid_path)
-
-        print("Stopped agent %s" % name)
+        # Redirect stdout and stderr to zam's log
+        log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
+        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+            "stop-agent", name], stdout=log_file, stderr=log_file,
+            cwd=env["ZOE_HOME"])
 
     @Message(tags = ["update"])
     def update(self, name):
@@ -414,8 +418,7 @@ class AgentManager:
         self.clean()
 
         # Restart the agent
-        self.stop(name)
-        return self.launch(name, os.path.split(script)[1])
+        self.restart(name)
 
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
