@@ -52,33 +52,6 @@ class AgentManager:
 
         self.add_to_list(name, source, alist, False)
 
-    def add_to_list(self, name, source, alist, ret=True):
-        """ Add an agent to the list. 
-
-            name -- name of the anget to install. Will be checked against
-                the agent list
-            source -- git repository URL to the source
-            alist -- agent list file
-            ret -- whether or not this function should return the new list
-        """
-        new_alist = alist
-
-        if name in new_alist.sections():
-            print("Agent %s is already in the list" % name)
-            return
-
-        new_alist.add_section(name)
-        new_alist[name]["source"] = str(source)
-        new_alist[name]["installed"] = "0"
-        new_alist[name]["version"] = ""
-
-        self.write_list(new_alist)
-
-        print("Added new agent %s to the list" % name)
-
-        if ret:
-            return new_alist
-
     @Message(tags = ["clean"])
     def clean(self):
         """ Clean the temp data stored in var/zam. """
@@ -239,7 +212,6 @@ class AgentManager:
             "launch-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        
         conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
         zconf = ConfigParser()
         zconf.read(conf_path)
@@ -257,8 +229,6 @@ class AgentManager:
     @Message(tags = ["purge"])
     def purge(self, name):
         """ Remove an agent's configuration files. """
-        alist = self.read_list()
-        
         # Uninstall the agent
         self.remove(name)
 
@@ -436,6 +406,33 @@ class AgentManager:
 
         # Restart the agent
         self.restart(name)
+
+    def add_to_list(self, name, source, alist, ret=True):
+        """ Add an agent to the list. 
+
+            name -- name of the anget to install. Will be checked against
+                the agent list
+            source -- git repository URL to the source
+            alist -- agent list file
+            ret -- whether or not this function should return the new list
+        """
+        new_alist = alist
+
+        if name in new_alist.sections():
+            print("Agent %s is already in the list" % name)
+            return
+
+        new_alist.add_section(name)
+        new_alist[name]["source"] = str(source)
+        new_alist[name]["installed"] = "0"
+        new_alist[name]["version"] = ""
+
+        self.write_list(new_alist)
+
+        print("Added new agent %s to the list" % name)
+
+        if ret:
+            return new_alist
 
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
