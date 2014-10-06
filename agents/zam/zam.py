@@ -50,18 +50,34 @@ class AgentManager:
         """ Add an agent to the list. """
         alist = self.read_list()
 
-        if name in alist.sections():
+        self.add_to_list(name, source, alist, False)
+
+    def add_to_list(self, name, source, alist, ret=True):
+        """ Add an agent to the list. 
+
+            name -- name of the anget to install. Will be checked against
+                the agent list
+            source -- git repository URL to the source
+            alist -- agent list file
+            ret -- whether or not this function should return the new list
+        """
+        new_alist = alist
+
+        if name in new_alist.sections():
             print("Agent %s is already in the list" % name)
             return
 
-        alist.add_section(name)
-        alist[name]["source"] = str(source)
-        alist[name]["installed"] = "0"
-        alist[name]["version"] = ""
+        new_alist.add_section(name)
+        new_alist[name]["source"] = str(source)
+        new_alist[name]["installed"] = "0"
+        new_alist[name]["version"] = ""
 
-        self.write_list(alist)
+        self.write_list(new_alist)
 
         print("Added new agent %s to the list" % name)
+
+        if ret:
+            return new_alist
 
     @Message(tags = ["clean"])
     def clean(self):
@@ -105,8 +121,7 @@ class AgentManager:
                 print("Source not found")
                 return
             else:
-                self.add(name, source)
-                alist = self.read_list()
+                alist = self.add_to_list(name, source, alist)
 
         self.clean()
 
