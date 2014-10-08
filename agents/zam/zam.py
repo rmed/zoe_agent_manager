@@ -43,17 +43,17 @@ ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
 
 
-@Agent(name = "zam")
+@Agent(name="zam")
 class AgentManager:
 
-    @Message(tags = ["add"])
+    @Message(tags=["add"])
     def add(self, name, source):
         """ Add an agent to the list. """
         alist = self.read_list()
 
         self.add_to_list(name, source, alist, False)
 
-    @Message(tags = ["clean"])
+    @Message(tags=["clean"])
     def clean(self):
         """ Clean the temp data stored in var/zam. """
         try:
@@ -62,7 +62,7 @@ class AgentManager:
             # Nothing to remove?
             pass
 
-    @Message(tags = ["forget"])
+    @Message(tags=["forget"])
     def forget(self, name):
         """ Remove an agent from the agent list.
 
@@ -81,7 +81,7 @@ class AgentManager:
 
         print("Removed agent %s from agent list" % name)
 
-    @Message(tags = ["install"])
+    @Message(tags=["install"])
     def install(self, name, source=None):
         """ Install an agent from source. """
         alist = self.read_list()
@@ -118,7 +118,7 @@ class AgentManager:
         if os.path.isfile(preinst):
             st = os.stat(preinst)
             os.chmod(preinst, st.st_mode | stat.S_IEXEC)
-            proc = subprocess.call([preinst,])
+            proc = subprocess.call([preinst, ])
             print("Ran preinst script, got code %i" % proc)
 
         # INSTALL
@@ -181,7 +181,7 @@ class AgentManager:
         if os.path.isfile(postinst):
             st = os.stat(postinst)
             os.chmod(postinst, st.st_mode | stat.S_IEXEC)
-            proc = subprocess.call([postinst,])
+            proc = subprocess.call([postinst, ])
             print("Ran postinst script, got code %i" % proc)
 
         # Store config files list (if any)
@@ -200,10 +200,9 @@ class AgentManager:
         self.clean()
 
         # Launch the agent (and register it)
-        #return self.launch(name, os.path.split(script)[1])
         return self.launch(name)
 
-    @Message(tags = ["launch"])
+    @Message(tags=["launch"])
     def launch(self, name):
         """ Launch an agent. """
         agent_dir = path(env["ZOE_HOME"], "agents", name)
@@ -221,15 +220,17 @@ class AgentManager:
 
         # Force the agent to register
         port = zconf["agent " + name]["port"]
-        msg = { "dst":"server", 
-                "tag":"register",
-                "name":name, 
-                "host":env["ZOE_SERVER_HOST"], 
-                "port":port }
+        msg = {
+            "dst": "server",
+            "tag": "register",
+            "name": name,
+            "host": env["ZOE_SERVER_HOST"],
+            "port": port
+        }
 
         return zoe.MessageBuilder(msg)
 
-    @Message(tags = ["purge"])
+    @Message(tags=["purge"])
     def purge(self, name):
         """ Remove an agent's configuration files. """
         # Uninstall the agent
@@ -254,7 +255,7 @@ class AgentManager:
 
         print("Agent %s purged" % name)
 
-    @Message(tags = ["remove"])
+    @Message(tags=["remove"])
     def remove(self, name):
         """ Uninstall an agent.
 
@@ -302,7 +303,7 @@ class AgentManager:
                 dirs = os.path.split(l)
                 while dirs[0] != "/":
                     if os.listdir(dirs[0]):
-                        break    
+                        break
                     shutil.rmtree(dirs[0])
                     dirs = os.path.split(dirs[0])
 
@@ -315,7 +316,7 @@ class AgentManager:
 
         print("Agent %s uninstalled" % name)
 
-    @Message(tags = ["restart"])
+    @Message(tags=["restart"])
     def restart(self, name):
         """ Restart an agent. """
         if not self.running(name):
@@ -328,7 +329,7 @@ class AgentManager:
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-    @Message(tags = ["stop"])
+    @Message(tags=["stop"])
     def stop(self, name):
         """ Stop an agent's execution. """
         if not self.running(name):
@@ -341,7 +342,7 @@ class AgentManager:
             "stop-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-    @Message(tags = ["update"])
+    @Message(tags=["update"])
     def update(self, name):
         """ Update an installed agent. """
         alist = self.read_list()
@@ -379,7 +380,7 @@ class AgentManager:
         if os.path.isfile(preupd):
             st = os.stat(preupd)
             os.chmod(preupd, st.st_mode | stat.S_IEXEC)
-            proc = subprocess.call([preupd,])
+            proc = subprocess.call([preupd, ])
             print("Ran preupd script, got code %i" % proc)
 
         # UPDATE
@@ -420,7 +421,7 @@ class AgentManager:
         if os.path.isfile(postupd):
             st = os.stat(postupd)
             os.chmod(postupd, st.st_mode | stat.S_IEXEC)
-            proc = subprocess.call([postupd,])
+            proc = subprocess.call([postupd, ])
             print("Ran postupd script, got code %i" % proc)
 
         # Cleanup
@@ -430,7 +431,7 @@ class AgentManager:
         self.restart(name)
 
     def add_to_list(self, name, source, alist, ret=True):
-        """ Add an agent to the list. 
+        """ Add an agent to the list.
 
             name -- name of the anget to install. Will be checked against
                 the agent list
@@ -461,7 +462,7 @@ class AgentManager:
         temp = path(ZAM_TEMP, name)
         alist = self.read_list()
 
-        try:   
+        try:
             if not source:
                 src = alist[name]["source"]
             else:
@@ -516,7 +517,7 @@ class AgentManager:
                         dirs = os.path.split(l)
                         while dirs[0] != "/":
                             if os.listdir(dirs[0]):
-                                break    
+                                break
                             shutil.rmtree(dirs[0])
                             dirs = os.path.split(dirs[0])
 
@@ -525,13 +526,13 @@ class AgentManager:
         for src in src_list:
             stripped = src.replace(source_dir + "/", "")
             dst = os.path.dirname(path(env["ZOE_HOME"], stripped))
-            
+
             try:
                 os.makedirs(dst)
             except:
                 # Tree already exists?
                 pass
-            
+
             file_list.append(shutil.copy(src, dst))
 
         return file_list
@@ -575,13 +576,13 @@ class AgentManager:
         for topic in topics:
             topic_section = "topic " + topic
 
-            if not topic_section in zconf.sections():
+            if topic_section not in zconf.sections():
                 zconf.add_section(topic_section)
                 zconf[topic_section]["agents"] = ""
 
             topic_agents = zconf[topic_section]["agents"].split(" ")
 
-            if not agent in topic_agents:
+            if agent not in topic_agents:
                 topic_agents.append(agent)
                 zconf[topic_section]["agents"] = " ".join(topic_agents)
 
@@ -600,7 +601,7 @@ class AgentManager:
         for topic in topics:
             topic_section = "topic " + topic
 
-            if not topic_section in zconf.sections():
+            if topic_section not in zconf.sections():
                 zconf.add_section(topic_section)
                 zconf[topic_section]["agents"] = ""
 
