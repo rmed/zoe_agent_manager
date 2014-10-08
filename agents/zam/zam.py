@@ -283,8 +283,15 @@ class AgentManager:
             zconf.remove_section("agent " + name)
 
         for topic in [t for t in zconf.sections() if t.startswith("topic")]:
-            if name in zconf[topic]["agents"]:
-                zconf[topic]["agents"].replace(name, "").strip()
+            topic_agents = zconf[topic]["agents"].split(" ")
+
+            try:
+                topic_agents.remove(name)
+                zconf[topic]["agents"] = " ".join(topic_agents)
+
+            except:
+                # Not in the list
+                continue
 
         with open(conf_path, "w") as configfile:
             zconf.write(configfile)
@@ -573,11 +580,11 @@ class AgentManager:
                 zconf.add_section(topic_section)
                 zconf[topic_section]["agents"] = ""
 
-            topic_agents = zconf[topic_section]["agents"]
+            topic_agents = zconf[topic_section]["agents"].split(" ")
 
             if not agent in topic_agents:
-                topic_agents += " " + agent
-                zconf[topic_section]["agents"] = topic_agents
+                topic_agents.append(agent)
+                zconf[topic_section]["agents"] = " ".join(topic_agents)
 
         return zconf
 
@@ -592,20 +599,21 @@ class AgentManager:
             zconf = ConfigParser()
             zconf.read(conf_path)
 
-        for topic_section in [t in zconf.sections() if t.startswith("topic")]:
-            topic_agents = zconf[topic_section]["agents"]
+        for topic_section in [
+                t for t in zconf.sections() if t.startswith("topic")]:
+            topic_agents = zconf[topic_section]["agents"].split(" ")
 
-            if agent in topic_agents and
-                    topic_section.replace("topic ", "") not in topics:
+            if agent in topic_agents and topic_section.replace(
+                    "topic ", "") not in topics:
                 # Currently present and should not be
-                topic_agents.replace(agent, "").strip()
+                topic_agents.remove(agent)
 
-            elif agent not in topic_agents and
-                    topic_section.replace("topic ", "") in topics:
+            elif agent not in topic_agents and topic_section.replace(
+                    "topic ", "") in topics:
                 # Not present and should be
-                topic_agents += " " + agent
+                topic_agents.append(agent)
 
-            zconf[topic_section]["agents"] = topic_agents
+            zconf[topic_section]["agents"] = " ".join(topic_agents)
 
         return zconf
 
