@@ -160,6 +160,13 @@ class AgentManager:
 
         zconf.add_section("agent " + name)
         zconf["agent " + name]["port"] = str(free_port)
+
+        topics = []
+        if a_info["info"]["topics"]:
+            topics = a_info["info"]["topics"].split(" ")
+
+        zconf = self.topics_install(name, topics, zconf)
+
         with open(conf_path, 'w') as configfile:
             zconf.write(configfile)
 
@@ -274,6 +281,10 @@ class AgentManager:
 
         if "agent " + name in zconf.sections():
             zconf.remove_section("agent " + name)
+
+        for topic in [t for t in zconf.sections() if t.startswith("topic")]:
+            if name in zconf[topic]["agents"]:
+                zconf[topic]["agents"].replace(name, "").strip()
 
         with open(conf_path, "w") as configfile:
             zconf.write(configfile)
@@ -392,6 +403,16 @@ class AgentManager:
         # Update version
         alist[name]["version"] = str(remote_ver)
         self.write_list(alist)
+
+        # Update topics
+        topics = []
+        if a_info["info"]["topics"]:
+            topics = a_info["info"]["topics"].split(" ")
+
+        zconf = self.topics_update(name, topics, zconf)
+
+        with open(conf_path, 'w') as configfile:
+            zconf.write(configfile)
 
         # POSTUPDATE
         postupd = path(temp, "zam", "postupd")
@@ -533,6 +554,60 @@ class AgentManager:
             return True
 
         return False
+
+    def topics_install(self, agent, topics, conf=None):
+        """ Set the topics an agent listens to DURING INSTALLATION.
+
+            If the zoe conf file is not passed, will read it.
+        """
+        zconf = conf
+        if not zconf:
+            conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
+            zconf = ConfigParser()
+            zconf.read(conf_path)
+
+        for topic in topics:
+            topic_section = "topic " + topic
+
+            if not topic_section in zconf.sections():
+                zconf.add_section(topic_section)
+                zconf[topic_section]["agents"] = ""
+
+            topic_agents = zconf[topic_section]["agents"]
+
+            if not agent in topic_agents:
+                topic_agents += " " + agent
+                zconf[topic_section]["agents"] = topic_agents
+
+        return zconf
+
+    def topics_update(self, agent, topics, conf=None):
+        """ Set the topics an agent listens to DURING UPDATE.
+
+            If the zoe conf file is not passed, will read it.
+        """
+        zconf = conf
+        if not zconf:
+            conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
+            zconf = ConfigParser()
+            zconf.read(conf_path)
+
+        for topic_section in [t in zconf.sections() if t.startswith("topic")]:
+            topic_agents = zconf[topic_section]["agents"]
+
+            if agent in topic_agents and
+                    topic_section.replace("topic ", "") not in topics:
+                # Currently present and should not be
+                topic_agents.replace(agent, "").strip()
+
+            elif agent not in topic_agents and
+                    topic_section.replace("topic ", "") in topics:
+                # Not present and should be
+                topic_agents += " " + agent
+
+            zconf[topic_section]["agents"] = topic_agents
+
+        return zconf
 
     def write_list(self, lparser):
         """ Write data into agent list. """
