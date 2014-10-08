@@ -37,6 +37,7 @@ from os.path import join as path
 from semantic_version import Version
 from zoe.deco import *
 
+ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
@@ -142,9 +143,7 @@ class AgentManager:
                 os.chmod(f, st.st_mode | stat.S_IEXEC)
 
         # Add agent to the zoe.conf file
-        conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
-        zconf = ConfigParser()
-        zconf.read(conf_path)
+        zconf = self.read_conf()
 
         ports = []
         for sec in zconf.sections():
@@ -167,8 +166,7 @@ class AgentManager:
 
         zconf = self.topics_install(name, topics, zconf)
 
-        with open(conf_path, 'w') as configfile:
-            zconf.write(configfile)
+        self.write_conf(zconf)
 
         # Update agent list
         alist[name]["installed"] = "1"
@@ -219,9 +217,7 @@ class AgentManager:
             "launch-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
-        zconf = ConfigParser()
-        zconf.read(conf_path)
+        zconf = self.read_conf()
 
         # Force the agent to register
         port = zconf["agent " + name]["port"]
@@ -275,9 +271,7 @@ class AgentManager:
             self.stop(name)
 
         # Remove from zoe.conf
-        conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
-        zconf = ConfigParser()
-        zconf.read(conf_path)
+        zconf = self.read_conf()
 
         if "agent " + name in zconf.sections():
             zconf.remove_section("agent " + name)
@@ -287,14 +281,16 @@ class AgentManager:
 
             try:
                 topic_agents.remove(name)
-                zconf[topic]["agents"] = " ".join(topic_agents)
+                if not topic_agents:
+                    zconf.remove_section(topic)
+                else:
+                    zconf[topic]["agents"] = " ".join(topic_agents)
 
             except:
                 # Not in the list
                 continue
 
-        with open(conf_path, "w") as configfile:
-            zconf.write(configfile)
+        self.write_conf(zconf)
 
         # Remove agent files and directories
         flist_path = path(ZAM_INFO, name + ".list")
@@ -416,10 +412,9 @@ class AgentManager:
         if a_info["info"]["topics"]:
             topics = a_info["info"]["topics"].split(" ")
 
+        zconf = self.read_conf()
         zconf = self.topics_update(name, topics, zconf)
-
-        with open(conf_path, 'w') as configfile:
-            zconf.write(configfile)
+        self.write_conf(zconf)
 
         # POSTUPDATE
         postupd = path(temp, "zam", "postupd")
@@ -542,6 +537,13 @@ class AgentManager:
 
         return file_list
 
+    def read_conf(self):
+        """ Read the Zoe configuration file located in etc/zoe.conf. """
+        conf = ConfigParser()
+        conf.read(ZCONF_PATH)
+
+        return conf
+
     def read_list(self):
         """ Read the agent list.
 
@@ -569,9 +571,7 @@ class AgentManager:
         """
         zconf = conf
         if not zconf:
-            conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
-            zconf = ConfigParser()
-            zconf.read(conf_path)
+            zconf = self.read_conf()
 
         for topic in topics:
             topic_section = "topic " + topic
@@ -595,9 +595,7 @@ class AgentManager:
         """
         zconf = conf
         if not zconf:
-            conf_path = path(env["ZOE_HOME"], "etc", "zoe.conf")
-            zconf = ConfigParser()
-            zconf.read(conf_path)
+            zconf = self.read_conf()
 
         for topic_section in [
                 t for t in zconf.sections() if t.startswith("topic")]:
@@ -616,6 +614,11 @@ class AgentManager:
             zconf[topic_section]["agents"] = " ".join(topic_agents)
 
         return zconf
+
+    def write_conf(self, zconf):
+        """ Write Zoe configuration into etc/zoe.conf. """
+        with open(ZCONF_PATH, 'w') as configfile:
+            zconf.write(configfile)
 
     def write_list(self, lparser):
         """ Write data into agent list. """
