@@ -412,8 +412,7 @@ class AgentManager:
         if a_info["info"]["topics"]:
             topics = a_info["info"]["topics"].split(" ")
 
-        zconf = self.read_conf()
-        zconf = self.topics_update(name, topics, zconf)
+        zconf = self.topics_update(name, topics)
         self.write_conf(zconf)
 
         # POSTUPDATE
@@ -596,6 +595,14 @@ class AgentManager:
         zconf = conf
         if not zconf:
             zconf = self.read_conf()
+
+        # Insert missing topics
+        for topic in topics:
+            topic_section = "topic " + topic
+
+            if not topic_section in zconf.sections():
+                zconf.add_section(topic_section)
+                zconf[topic_section]["agents"] = ""
 
         for topic_section in [
                 t for t in zconf.sections() if t.startswith("topic")]:
