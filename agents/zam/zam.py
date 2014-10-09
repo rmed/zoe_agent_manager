@@ -190,7 +190,7 @@ class AgentManager:
             conflist = []
             with open(info_conf, "r") as conffile:
                 for c in conffile.read().splitlines():
-                    conflist.append(path(env["ZOE_HOME"], c))
+                    conflist.append(c)
 
             with open(path(ZAM_INFO, name + ".conffiles"), "w+") as stored_conf:
                 for c in conflist:
@@ -243,7 +243,8 @@ class AgentManager:
             return
 
         with open(confpath, "r") as conflist:
-            for c in conflist.read().splitlines():
+            for cf in conflist.read().splitlines():
+                c = path(env["ZOE_HOME"], cf)
                 print("Removing %s" % c)
                 try:
                     os.remove(c)
@@ -296,7 +297,8 @@ class AgentManager:
         # Remove agent files and directories
         flist_path = path(ZAM_INFO, name + ".list")
         with open(flist_path, "r") as flist:
-            for l in flist.read().splitlines():
+            for f in flist.read().splitlines():
+                l = path(env["ZOE_HOME"], f)
                 # Remove final file
                 os.remove(l)
                 # Remove the tree that was generated in the installation
@@ -501,30 +503,32 @@ class AgentManager:
 
         if updating:
             # Diff list
+            diff_list = []
             for src in src_list:
-                diff_list = []
-                stripped = src.replace(source_dir + "/", "")
-                diff_list.append(path(env["ZOE_HOME"], stripped))
+                stripped = src.replace(source_dir, "")
+                stripped = self.remove_slash(stripped)
+                diff_list.append(stripped)
 
             # Compare file lists and remove those not present in the update
             alist_path = path(ZAM_INFO, name + ".list")
             with open(alist_path, "r") as alist:
-                for l in alist.read().splitlines():
-                    if l not in diff_list:
-                        # Remove final file
-                        os.remove(l)
-                        # Remove the generated tree
-                        dirs = os.path.split(l)
-                        while dirs[0] != "/":
-                            if os.listdir(dirs[0]):
-                                break
-                            shutil.rmtree(dirs[0])
-                            dirs = os.path.split(dirs[0])
+                for f in [p for p in alist.read().splitlines() if p not in diff_list]:
+                    l = path(env["ZOE_HOME"], f)
+                    # Remove final file
+                    os.remove(l)
+                    # Remove the generated tree
+                    dirs = os.path.split(l)
+                    while dirs[0] != "/":
+                        if os.listdir(dirs[0]):
+                            break
+                        shutil.rmtree(dirs[0])
+                        dirs = os.path.split(dirs[0])
 
         # Move files
         file_list = []
         for src in src_list:
-            stripped = src.replace(source_dir + "/", "")
+            stripped = src.replace(source_dir, "")
+            stripped = self.remove_slash(stripped)
             dst = os.path.dirname(path(env["ZOE_HOME"], stripped))
 
             try:
@@ -533,7 +537,11 @@ class AgentManager:
                 # Tree already exists?
                 pass
 
-            file_list.append(shutil.copy(src, dst))
+            new_path = shutil.copy(src, dst)
+            new_path = new_path.replace(env["ZOE_HOME"], "")
+            new_path = self.remove_slash(new_path)
+
+            file_list.append(new_path)
 
         return file_list
 
@@ -553,6 +561,15 @@ class AgentManager:
         alist.read(ZAM_LIST)
 
         return alist
+
+    def remove_slash(self, path):
+        """ Remove initial slash (/) from path (if any). """
+        new_path = path
+
+        if path.startswith("/"):
+            new_path = path[0].replace("/", "") + path[1:]
+
+        return new_path             
 
     def running(self, name):
         """ Check if an agent is running. """
