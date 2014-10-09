@@ -137,11 +137,10 @@ class AgentManager:
         os.chmod(script, st.st_mode | stat.S_IEXEC)
 
         # Make cmdproc scripts executable
-        for f in file_list:
-            if f.startswith("cmdproc"):
-                cf = path(env["ZOE_HOME"], f)
-                st = os.stat(cf)
-                os.chmod(cf, st.st_mode | stat.S_IEXEC)
+        for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
+            df = path(env["ZOE_HOME"], f)
+            st = os.stat(df)
+            os.chmod(df, st.st_mode | stat.S_IEXEC)
 
         # Add agent to the zoe.conf file
         zconf = self.read_conf()
@@ -402,11 +401,10 @@ class AgentManager:
         os.chmod(script, st.st_mode | stat.S_IEXEC)
 
         # Make cmdproc scripts executable
-        for cf in file_list:
-            if f.startswith("cmdproc"):
-                cf = path(env["ZOE_HOME"], f)
-                st = os.stat(f)
-                os.chmod(f, st.st_mode | stat.S_IEXEC)
+        for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
+            df = path(env["ZOE_HOME"], f)
+            st = os.stat(df)
+            os.chmod(df, st.st_mode | stat.S_IEXEC)
 
         # Update version
         alist[name]["version"] = str(remote_ver)
