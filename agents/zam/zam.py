@@ -107,11 +107,11 @@ class AgentManager:
             self.clean()
             return
 
-        info_path = path(temp, "zam", "info")
-        a_info = ConfigParser()
-        # Add a dummy section
-        a_info.read_string(StringIO(
-            "[info]\n%s" % open(info_path).read()).read())
+        a_info = self.parse_info(path(temp, "zam", "info"));
+
+        # Version is mandatory!
+        if not a_info["version"]:
+            return
 
         # PREINSTALL
         preinst = path(temp, "zam", "preinst")
@@ -131,10 +131,14 @@ class AgentManager:
                 dfile.write("%s\n" % f)
 
         # Make script executable
-        script = path(env["ZOE_HOME"], "agents",
-            name, a_info["info"]["script"])
-        st = os.stat(script)
-        os.chmod(script, st.st_mode | stat.S_IEXEC)
+        #
+        # There may be cases where an agent is only formed by natural
+        # language files, so this key may not be present.
+        if a_info["script"]:
+            script = path(env["ZOE_HOME"], "agents",
+                name, a_info["script"])
+            st = os.stat(script)
+            os.chmod(script, st.st_mode | stat.S_IEXEC)
 
         # Make cmdproc scripts executable
         for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
@@ -160,17 +164,16 @@ class AgentManager:
         zconf.add_section("agent " + name)
         zconf["agent " + name]["port"] = str(free_port)
 
-        topics = []
-        if a_info["info"]["topics"]:
-            topics = a_info["info"]["topics"].split(" ")
-
-        zconf = self.topics_install(name, topics, zconf)
+        # Topics are optional
+        if a_info["topics"]:
+            topics = a_info["topics"].split(" ")
+            zconf = self.topics_install(name, topics, zconf)
 
         self.write_conf(zconf)
 
         # Update agent list
         alist[name]["installed"] = "1"
-        alist[name]["version"] = a_info["info"]["version"]
+        alist[name]["version"] = a_info["version"]
 
         self.write_list(alist)
 
@@ -200,7 +203,8 @@ class AgentManager:
         self.clean()
 
         # Launch the agent (and register it)
-        return self.launch(name)
+        if a_info["script"]:
+            return self.launch(name)
 
     @Message(tags=["launch"])
     def launch(self, name):
@@ -364,13 +368,14 @@ class AgentManager:
             self.clean()
             return
 
-        # Parse version
-        info_path = path(temp, "zam", "info")
-        a_info = ConfigParser()
-        a_info.read_string(StringIO(
-            "[info]\n%s" % open(info_path).read()).read())
+        # Parse information
+        a_info = self.parse_info(path(temp, "zam", "info"));
 
-        remote_ver = Version(a_info["info"]["version"])
+        # Version is mandatory!
+        if not a_info["version"]:
+            return
+
+        remote_ver = Version(a_info["version"])
         local_ver = Version(alist[name]["version"])
 
         if remote_ver <= local_ver:
@@ -395,10 +400,14 @@ class AgentManager:
                 dfile.write("%s\n" % f)
 
         # Make script executable
-        script = path(env["ZOE_HOME"], "agents",
-            name, a_info["info"]["script"])
-        st = os.stat(script)
-        os.chmod(script, st.st_mode | stat.S_IEXEC)
+        #
+        # There may be cases where an agent is only formed by natural
+        # language files, so this key may not be present.
+        if a_info["script"]:
+            script = path(env["ZOE_HOME"], "agents",
+                name, a_info["script"])
+            st = os.stat(script)
+            os.chmod(script, st.st_mode | stat.S_IEXEC)
 
         # Make cmdproc scripts executable
         for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
@@ -410,12 +419,11 @@ class AgentManager:
         alist[name]["version"] = str(remote_ver)
         self.write_list(alist)
 
-        # Update topics
-        topics = []
-        if a_info["info"]["topics"]:
-            topics = a_info["info"]["topics"].split(" ")
+        # Update topics (if any)
+        if a_info["topics"]:
+            topics = a_info["topics"].split(" ")
+            zconf = self.topics_update(name, topics)
 
-        zconf = self.topics_update(name, topics)
         self.write_conf(zconf)
 
         # POSTUPDATE
@@ -429,8 +437,9 @@ class AgentManager:
         # Cleanup
         self.clean()
 
-        # Restart the agent
-        self.restart(name)
+        if a_info["script"]:
+            # Restart the agent
+            self.restart(name)
 
     def add_to_list(self, name, source, alist, ret=True):
         """ Add an agent to the list.
@@ -544,6 +553,33 @@ class AgentManager:
             file_list.append(new_path)
 
         return file_list
+
+    def parse_info(self, info_path):
+        """ When installing an agent, parse the information file and return
+            a dictionary with the information.
+
+            In the case the specific field is not present, give value None
+            and continue.
+        """
+        info = ConfigParser()
+        # Add a dummy section
+        info.read_string(StringIO(
+            "[info]\n%s" % open(info_path).read()).read())
+
+        data = {
+            "agent": None,
+            "version": None,
+            "license": None,
+            "maintainer": None,
+            "script": None,
+            "topics": None,
+            "description": None
+        }
+
+        for key in info["info"].keys():
+            data[key] = info["info"][key]
+
+        return data
 
     def read_conf(self):
         """ Read the Zoe configuration file located in etc/zoe.conf. """
