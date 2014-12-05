@@ -1,5 +1,5 @@
 agent = zam
-version = 0.4.1
+version = 0.5.0
 license = MIT
 maintainer = Rafael Medina García <rafamedgar@gmail.com>
 script = zam.py
