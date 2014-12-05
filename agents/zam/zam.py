@@ -210,11 +210,12 @@ class AgentManager:
         # Cleanup
         self.clean()
 
-        self.feedback("Agent %s installed correctly" % name, sender, False)
-
         # Launch the agent (and register it)
         if a_info["script"]:
-            return self.launch(name, sender)
+            return [
+                self.feedback("Agent %s installed correctly" % name, sender),
+                self.launch(name, sender)
+            ]
 
     @Message(tags=["launch"])
     def launch(self, name, sender=None):
@@ -243,9 +244,11 @@ class AgentManager:
             "port": port
         }
 
-        self.feedback("Launching agent %s" % name, sender, False)
 
-        return zoe.MessageBuilder(launch_msg)
+        return [
+            self.feedback("Launching agent %s" % name, sender),
+            zoe.MessageBuilder(launch_msg)
+        ]
 
     @Message(tags=["purge"])
     def purge(self, name, sender=None):
@@ -351,13 +354,13 @@ class AgentManager:
             print(msg)
             return self.feedback(msg, sender)
 
-        self.feedback("Restarting agent %s" % agent, sender, False)
-
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
         proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
+
+        return self.feedback("Restarting agent %s" % agent, sender)
 
     @Message(tags=["stop"])
     def stop(self, name, sender=None):
@@ -367,13 +370,13 @@ class AgentManager:
             print(msg)
             return self.feedback(msg, sender)
 
-        self.feedback("Stopping agent %s" % name, sender, False)
-
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
         proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
             "stop-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
+
+        return self.feedback("Stopping agent %s" % name, sender)
 
     @Message(tags=["update"])
     def update(self, name, sender=None):
@@ -469,11 +472,13 @@ class AgentManager:
         # Cleanup
         self.clean()
 
-        self.feedback("Updated agent %s" % name, sender, False)
 
         if a_info["script"]:
             # Restart the agent
-            return self.restart(name, sender)
+            return [
+                self.feedback("Updated agent %s" % name, sender),
+                self.restart(name, sender)
+            ]
 
     def add_to_list(self, name, source, alist, ret=True, sender=None):
         """ Add an agent to the list.
@@ -498,14 +503,12 @@ class AgentManager:
 
         self.write_list(new_alist)
 
-        msg = "Added new agent %s to the list" % name
-        print(msg)
-        self.feedback(msg, sender, False)
+        print("Added new agent %s to the list" % name)
 
         if ret:
             return new_alist
 
-    def feedback(self, message, user, final=True):
+    def feedback(self, message, user):
         """ If there is a sender, send feedback message with status
             through Jabber.
 
@@ -525,11 +528,7 @@ class AgentManager:
             "msg": message
         }
 
-        if final:
-            return zoe.MessageBuilder(to_send)
-
-        self._listener.sendbus(zoe.MessageBuilder(to_send).msg())
-        return
+        return zoe.MessageBuilder(to_send)
 
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
