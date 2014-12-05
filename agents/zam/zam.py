@@ -221,7 +221,7 @@ class AgentManager:
         """ Launch an agent. """
         agent_dir = path(env["ZOE_HOME"], "agents", name)
         if not os.path.isdir(agent_dir):
-            msg = "Agent %s does not exist!" % name)
+            msg = "Agent %s does not exist!" % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -287,7 +287,7 @@ class AgentManager:
         alist = self.read_list()
 
         if not self.installed(name, alist):
-            msg = "Agent %s is not installed" % name)
+            msg = "Agent %s is not installed" % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -392,7 +392,7 @@ class AgentManager:
         git_code = self.fetch(name, alist[name]["source"])
 
         if git_code != 0:
-            msg = "Could not fetch source")
+            msg = "Could not fetch source"
             print(msg)
             self.clean()
             return self.feedback(msg, sender)
@@ -410,7 +410,7 @@ class AgentManager:
         local_ver = Version(alist[name]["version"])
 
         if remote_ver <= local_ver:
-            msg = "Agent %s is already up-to-date" % name)
+            msg = "Agent %s is already up-to-date" % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -527,9 +527,9 @@ class AgentManager:
 
         if final:
             return zoe.MessageBuilder(to_send)
-        else:
-            self._listener.sendbus(zoe.MessageBuilder(to_send).msg()
-            return
+
+        self._listener.sendbus(zoe.MessageBuilder(to_send).msg())
+        return
 
     def fetch(self, name, source):
         """ Download the source of the agent to var/zam/name. """
