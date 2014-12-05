@@ -360,7 +360,7 @@ class AgentManager:
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        return self.feedback("Restarting agent %s" % agent, sender)
+        return self.feedback("Restarting agent %s" % name, sender)
 
     @Message(tags=["stop"])
     def stop(self, name, sender=None):
@@ -459,7 +459,7 @@ class AgentManager:
             topics = a_info["topics"].split(" ")
             zconf = self.topics_update(name, topics)
 
-        self.write_conf(zconf)
+            self.write_conf(zconf)
 
         # POSTUPDATE
         postupd = path(temp, "zam", "postupd")
@@ -514,8 +514,6 @@ class AgentManager:
 
             message -- message to send
             user -- user to send the message to
-            final -- whether this is an intermediate message or function
-                must return when executed
         """
         if not user:
             return
