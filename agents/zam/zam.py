@@ -606,11 +606,12 @@ class AgentManager:
                 # Tree already exists?
                 pass
 
-            new_path = shutil.copy(src, dst)
-            new_path = new_path.replace(env["ZOE_HOME"], "")
-            new_path = self.remove_slash(new_path)
+            shutil.copy(src, dst)
+            # new_path = shutil.copy(src, dst)
+            # new_path = new_path.replace(env["ZOE_HOME"], "")
+            # new_path = self.remove_slash(new_path)
 
-            file_list.append(new_path)
+            file_list.append(stripped)
 
         return file_list
 
