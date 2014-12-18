@@ -43,6 +43,8 @@ ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
 USERS = Users()
+MSG_NO_PERM = "You don't have permissions to do that"
+
 
 
 @Agent(name="zam")
@@ -51,6 +53,10 @@ class AgentManager:
     @Message(tags=["add"])
     def add(self, name, source, sender=None):
         """ Add an agent to the list. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         alist = self.read_list()
 
         self.add_to_list(name, source, alist, False, sender)
@@ -71,6 +77,10 @@ class AgentManager:
             The agent must be uninstalled first, and means that in order to
             install it again, the source must be provided.
         """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         alist = self.read_list()
 
         if self.installed(name, alist):
@@ -88,6 +98,10 @@ class AgentManager:
     @Message(tags=["install"])
     def install(self, name, source=None, sender=None):
         """ Install an agent from source. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         alist = self.read_list()
 
         if self.installed(name, alist):
@@ -222,6 +236,10 @@ class AgentManager:
     @Message(tags=["launch"])
     def launch(self, name, sender=None):
         """ Launch an agent. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         if self.running(name):
             msg = "Agent %s is already running" % name
             print(msg)
@@ -260,6 +278,10 @@ class AgentManager:
     @Message(tags=["purge"])
     def purge(self, name, sender=None):
         """ Remove an agent's configuration files. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         # Uninstall the agent
         self.remove(name)
 
@@ -294,6 +316,10 @@ class AgentManager:
             Any additional files (such as configuration files) are kept
             in case the agent is installed again.
         """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         alist = self.read_list()
 
         if not self.installed(name, alist):
@@ -356,6 +382,10 @@ class AgentManager:
     @Message(tags=["restart"])
     def restart(self, name, sender=None):
         """ Restart an agent. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         if not self.running(name):
             msg = "Agent %s is not running" % name
             print(msg)
@@ -372,6 +402,10 @@ class AgentManager:
     @Message(tags=["stop"])
     def stop(self, name, sender=None):
         """ Stop an agent's execution. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         if not self.running(name):
             msg = "Agent %s is not running" % name
             print(msg)
@@ -388,6 +422,10 @@ class AgentManager:
     @Message(tags=["update"])
     def update(self, name, sender=None):
         """ Update an installed agent. """
+        if not self.has_permissions(sender):
+            print(MSG_NO_PERM)
+            return self.feedback(MSG_NO_PERM, sender)
+
         alist = self.read_list()
 
         if not self.installed(name, alist):
@@ -515,16 +553,6 @@ class AgentManager:
         if ret:
             return new_alist
 
-    def check_permissions(self, user):
-        """ Check if the user has permissions necessary to interact with the
-            agent manager (belongs to group 'admins').
-        """
-        # No user, manual commands from terminal
-        if not user or user in USERS.membersof("admins"):
-            return True
-
-        return False
-
     def feedback(self, message, user):
         """ If there is a sender, send feedback message with status
             through Jabber.
@@ -559,6 +587,16 @@ class AgentManager:
             return -1
 
         return subprocess.call(["git", "clone", src, temp])
+
+    def has_permissions(self, user):
+        """ Check if the user has permissions necessary to interact with the
+            agent manager (belongs to group 'admins').
+        """
+        # No user, manual commands from terminal
+        if not user or user in USERS.membersof("admins"):
+            return True
+
+        return False
 
     def installed(self, name, alist):
         """ Check if an agent is installed or not. """
@@ -624,10 +662,6 @@ class AgentManager:
                 pass
 
             shutil.copy(src, dst)
-            # new_path = shutil.copy(src, dst)
-            # new_path = new_path.replace(env["ZOE_HOME"], "")
-            # new_path = self.remove_slash(new_path)
-
             file_list.append(stripped)
 
         return file_list
