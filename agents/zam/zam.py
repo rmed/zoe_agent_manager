@@ -26,6 +26,7 @@
 # SOFTWARE.
 
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -38,13 +39,12 @@ from semantic_version import Version
 from zoe.deco import *
 from zoe.models.users import Users
 
+MSG_NO_PERM = "You don't have permissions to do that"
+USERS = Users()
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
-USERS = Users()
-MSG_NO_PERM = "You don't have permissions to do that"
-
 
 
 @Agent(name="zam")
@@ -58,6 +58,11 @@ class AgentManager:
             return self.feedback(MSG_NO_PERM, sender)
 
         alist = self.read_list()
+
+        if name in alist.sections():
+            msg = "Agent %s is already in the list" % name
+            print(msg)
+            return self.feedback(msg, sender)
 
         self.add_to_list(name, source, alist, False, sender)
 
@@ -120,7 +125,7 @@ class AgentManager:
         self.clean()
 
         temp = path(ZAM_TEMP, name)
-        git_code = self.fetch(name, source)
+        git_code = self.fetch(name, alist[name]["source"])
 
         if git_code != 0:
             msg = "Could not fetch source"
@@ -530,19 +535,20 @@ class AgentManager:
 
             name -- name of the anget to install. Will be checked against
                 the agent list
-            source -- git repository URL to the source
+            source -- git repository URL, or GitHub repository name,
+                of the source
             alist -- agent list file
             ret -- whether or not this function should return the new list
         """
         new_alist = alist
+        source_url = source
 
-        if name in new_alist.sections():
-            msg = "Agent %s is already in the list" % name
-            print(msg)
-            return self.feedback(msg, sender)
+        if re.match("^[a-z0-9-]+\/\w+$", source):
+            # GitHub repository
+            source_url = "https://github.com/%s.git" % source
 
         new_alist.add_section(name)
-        new_alist[name]["source"] = str(source)
+        new_alist[name]["source"] = str(source_url)
         new_alist[name]["installed"] = "0"
         new_alist[name]["version"] = ""
 
