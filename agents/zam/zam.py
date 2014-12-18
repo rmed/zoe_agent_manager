@@ -36,11 +36,13 @@ from os import environ as env
 from os.path import join as path
 from semantic_version import Version
 from zoe.deco import *
+from zoe.models.users import Users
 
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
+USERS = Users()
 
 
 @Agent(name="zam")
@@ -220,6 +222,11 @@ class AgentManager:
     @Message(tags=["launch"])
     def launch(self, name, sender=None):
         """ Launch an agent. """
+        if self.running(name):
+            msg = "Agent %s is already running" % name
+            print(msg)
+            return self.feedback(msg, sender)
+
         agent_dir = path(env["ZOE_HOME"], "agents", name)
         if not os.path.isdir(agent_dir):
             msg = "Agent %s does not exist!" % name
@@ -507,6 +514,16 @@ class AgentManager:
 
         if ret:
             return new_alist
+
+    def check_permissions(self, user):
+        """ Check if the user has permissions necessary to interact with the
+            agent manager (belongs to group 'admins').
+        """
+        # No user, manual commands from terminal
+        if not user or user in USERS.membersof("admins"):
+            return True
+
+        return False
 
     def feedback(self, message, user):
         """ If there is a sender, send feedback message with status
