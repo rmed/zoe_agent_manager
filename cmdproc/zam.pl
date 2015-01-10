@@ -45,7 +45,7 @@ my @strings;
 
 GetOptions("get" => \$get,
            "run" => \$run,
-           "msg-sender=s" => \$sender,
+           "msg-sender-uniqueid=s" => \$sender,
            "a" => \$add,
            "c" => \$clean,
            "f" => \$forget,
