@@ -543,7 +543,7 @@ class AgentManager:
         new_alist = alist
         source_url = source
 
-        if re.match("^[a-z0-9-]+\/\w+$", source):
+        if re.match("^[a-z0-9-_]+\/[a-z0-9-_]+$", source, re.IGNORECASE):
             # GitHub repository
             source_url = "https://github.com/%s.git" % source
 
