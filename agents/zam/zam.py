@@ -169,8 +169,9 @@ class AgentManager:
             st = os.stat(script)
             os.chmod(script, st.st_mode | stat.S_IEXEC)
 
-        # Make cmdproc scripts executable
-        for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
+        # Make cmdproc and mailproc scripts executable
+        for f in [cf for cf in file_list if cf.startswith("cmdproc") or
+                cf.startswith("mailproc")]:
             df = path(env["ZOE_HOME"], f)
             st = os.stat(df)
             os.chmod(df, st.st_mode | stat.S_IEXEC)
@@ -494,8 +495,9 @@ class AgentManager:
             st = os.stat(script)
             os.chmod(script, st.st_mode | stat.S_IEXEC)
 
-        # Make cmdproc scripts executable
-        for f in [cf for cf in file_list if cf.startswith("cmdproc")]:
+        # Make cmdproc and mailproc scripts executable
+        for f in [cf for cf in file_list if cf.startswith("cmdproc") or
+                cf.startswith("mailproc")]:
             df = path(env["ZOE_HOME"], f)
             st = os.stat(df)
             os.chmod(df, st.st_mode | stat.S_IEXEC)
