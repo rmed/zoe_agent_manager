@@ -524,7 +524,6 @@ class AgentManager:
         # Cleanup
         self.clean()
 
-
         if a_info["script"]:
             # Restart the agent
             return [
