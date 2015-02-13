@@ -3,7 +3,7 @@ Zoe Agent Manager
 
 An agent manager for Zoe.
 
-**status:** In development / testing
+![Agent version](https://img.shields.io/badge/Zoe_Agent-0.6.4-blue.svg "Zoe Agent Manager")
 
 Requirements
 ------------
