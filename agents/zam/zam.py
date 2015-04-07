@@ -40,6 +40,8 @@ from semantic_version import Version
 from zoe.deco import *
 from zoe.models.users import Users
 
+gettext.install("zam")
+
 MSG_NO_PERM = _("You don't have permissions to do that")
 USERS = Users()
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
@@ -53,8 +55,10 @@ LOCALEDIR = path(env["ZOE_HOME"], "locale")
 class AgentManager:
 
     @Message(tags=["add"])
-    def add(self, name, source, sender=None):
+    def add(self, name, source, sender=None, locale="en"):
         """ Add an agent to the list. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -78,12 +82,14 @@ class AgentManager:
             pass
 
     @Message(tags=["forget"])
-    def forget(self, name, sender=None):
+    def forget(self, name, sender=None, locale="en"):
         """ Remove an agent from the agent list.
 
             The agent must be uninstalled first, and means that in order to
             install it again, the source must be provided.
         """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -103,8 +109,10 @@ class AgentManager:
         return self.feedback(msg, sender)
 
     @Message(tags=["install"])
-    def install(self, name, source=None, sender=None):
+    def install(self, name, source=None, sender=None, locale="en"):
         """ Install an agent from source. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -242,8 +250,10 @@ class AgentManager:
             ]
 
     @Message(tags=["launch"])
-    def launch(self, name, sender=None):
+    def launch(self, name, sender=None, locale="en"):
         """ Launch an agent. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -284,8 +294,10 @@ class AgentManager:
         ]
 
     @Message(tags=["purge"])
-    def purge(self, name, sender=None):
+    def purge(self, name, sender=None, locale="en"):
         """ Remove an agent's configuration files. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -318,12 +330,14 @@ class AgentManager:
         return self.feedback(msg, sender)
 
     @Message(tags=["remove"])
-    def remove(self, name, sender=None):
+    def remove(self, name, sender=None, locale="en"):
         """ Uninstall an agent.
 
             Any additional files (such as configuration files) are kept
             in case the agent is installed again.
         """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -388,8 +402,10 @@ class AgentManager:
         return self.feedback(msg, sender)
 
     @Message(tags=["restart"])
-    def restart(self, name, sender=None):
+    def restart(self, name, sender=None, locale="en"):
         """ Restart an agent. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -408,8 +424,10 @@ class AgentManager:
         return self.feedback(_("Restarting agent %s") % name, sender)
 
     @Message(tags=["stop"])
-    def stop(self, name, sender=None):
+    def stop(self, name, sender=None, locale="en"):
         """ Stop an agent's execution. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -428,8 +446,10 @@ class AgentManager:
         return self.feedback(_("Stopping agent %s") % name, sender)
 
     @Message(tags=["update"])
-    def update(self, name, sender=None):
+    def update(self, name, sender=None, locale="en"):
         """ Update an installed agent. """
+        self.set_locale(locale)
+
         if not self.has_permissions(sender):
             print(MSG_NO_PERM)
             return self.feedback(MSG_NO_PERM, sender)
@@ -744,7 +764,7 @@ class AgentManager:
             If no locale is provided, English (en) is used by default.
         """
         lang = gettext.translation("zam", localedir=LOCALEDIR,
-            languages=[locale])
+            languages=[locale,])
 
         lang.install()
 
