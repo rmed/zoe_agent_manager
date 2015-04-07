@@ -70,7 +70,7 @@ class AgentManager:
             print(msg)
             return self.feedback(msg, sender)
 
-        self.add_to_list(name, source, alist, False, sender)
+        self.add_to_list(name, source, alist, False)
 
     @Message(tags=["clean"])
     def clean(self):
@@ -130,7 +130,7 @@ class AgentManager:
                 print(msg)
                 return self.feedback(msg, sender)
 
-            alist = self.add_to_list(name, source, alist, sender=sender)
+            alist = self.add_to_list(name, source, alist)
 
         self.clean()
 
@@ -217,7 +217,8 @@ class AgentManager:
 
         self.write_list(alist)
 
-        print("Agent %s installed correctly" % name)
+        msg = _("Agent %s installed correctly") % name
+        print(msg)
 
         # POSTINSTALL
         postinst = path(temp, "zam", "postinst")
@@ -245,8 +246,8 @@ class AgentManager:
         # Launch the agent (and register it)
         if a_info["script"]:
             return [
-                self.feedback(_("Agent %s installed correctly") % name, sender),
-                self.launch(name, sender)
+                self.feedback(msg, sender),
+                self.launch(name, sender, locale)
             ]
 
     @Message(tags=["launch"])
@@ -350,7 +351,7 @@ class AgentManager:
             return self.feedback(msg, sender)
 
         if self.running(name):
-            self.stop(name, sender)
+            self.stop(name, sender, locale)
 
         # Remove from zoe.conf
         zconf = self.read_conf()
@@ -535,6 +536,9 @@ class AgentManager:
 
             self.write_conf(zconf)
 
+        msg = _("Updated agent %s") % name
+        print(msg)
+
         # POSTUPDATE
         postupd = path(temp, "zam", "postupd")
         if os.path.isfile(postupd):
@@ -549,11 +553,11 @@ class AgentManager:
         if a_info["script"]:
             # Restart the agent
             return [
-                self.feedback(_("Updated agent %s") % name, sender),
-                self.restart(name, sender)
+                self.feedback(msg, sender),
+                self.restart(name, sender, locale)
             ]
 
-    def add_to_list(self, name, source, alist, ret=True, sender=None):
+    def add_to_list(self, name, source, alist, ret=True):
         """ Add an agent to the list.
 
             name -- name of the anget to install. Will be checked against
