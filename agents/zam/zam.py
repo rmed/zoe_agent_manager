@@ -39,7 +39,7 @@ from semantic_version import Version
 from zoe.deco import *
 from zoe.models.users import Users
 
-MSG_NO_PERM = "You don't have permissions to do that"
+MSG_NO_PERM = _("You don't have permissions to do that")
 USERS = Users()
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
@@ -60,7 +60,7 @@ class AgentManager:
         alist = self.read_list()
 
         if name in alist.sections():
-            msg = "Agent %s is already in the list" % name
+            msg = _("Agent %s is already in the list") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -89,14 +89,14 @@ class AgentManager:
         alist = self.read_list()
 
         if self.installed(name, alist):
-            msg = "Agent %s is installed, uninstall it first" % name
+            msg = _("Agent %s is installed, uninstall it first") % name
             print(msg)
             return self.feedback(msg, sender)
 
         if name in alist.sections():
             alist.remove_section(name)
             self.write_list(alist)
-        msg = "Removed agent %s from agent list" % name
+        msg = _("Removed agent %s from agent list") % name
         print(msg)
         return self.feedback(msg, sender)
 
@@ -110,13 +110,13 @@ class AgentManager:
         alist = self.read_list()
 
         if self.installed(name, alist):
-            msg = "Agent %s is already installed" % name
+            msg = _("Agent %s is already installed") % name
             print(msg)
             return self.feedback(msg, sender)
 
         if name not in alist.sections():
             if not source:
-                msg = "Source not found"
+                msg = _("Source not found")
                 print(msg)
                 return self.feedback(msg, sender)
 
@@ -128,7 +128,7 @@ class AgentManager:
         git_code = self.fetch(name, alist[name]["source"])
 
         if git_code != 0:
-            msg = "Could not fetch source"
+            msg = _("Could not fetch source")
             print(msg)
             self.clean()
             return self.feedback(msg, sender)
@@ -137,7 +137,7 @@ class AgentManager:
 
         # Version is mandatory!
         if not a_info["version"]:
-            msg = "Missing version in info file for %s" % name
+            msg = _("Missing version in info file for %s") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -235,7 +235,7 @@ class AgentManager:
         # Launch the agent (and register it)
         if a_info["script"]:
             return [
-                self.feedback("Agent %s installed correctly" % name, sender),
+                self.feedback(_("Agent %s installed correctly") % name, sender),
                 self.launch(name, sender)
             ]
 
@@ -247,13 +247,13 @@ class AgentManager:
             return self.feedback(MSG_NO_PERM, sender)
 
         if self.running(name):
-            msg = "Agent %s is already running" % name
+            msg = _("Agent %s is already running") % name
             print(msg)
             return self.feedback(msg, sender)
 
         agent_dir = path(env["ZOE_HOME"], "agents", name)
         if not os.path.isdir(agent_dir):
-            msg = "Agent %s does not exist!" % name
+            msg = _("Agent %s does not exist!") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -277,7 +277,7 @@ class AgentManager:
 
 
         return [
-            self.feedback("Launching agent %s" % name, sender),
+            self.feedback(_("Launching agent %s") % name, sender),
             zoe.MessageBuilder(launch_msg)
         ]
 
@@ -294,7 +294,7 @@ class AgentManager:
         # Remove config files
         confpath = path(ZAM_INFO, name + ".conffiles")
         if not os.path.isfile(confpath):
-            msg = "Agent %s has no config files" % name
+            msg = _("Agent %s has no config files") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -310,7 +310,7 @@ class AgentManager:
 
         os.remove(confpath)
 
-        msg = "Agent %s purged" % name
+        msg = _("Agent %s purged") % name
         print(msg)
 
         return self.feedback(msg, sender)
@@ -329,7 +329,7 @@ class AgentManager:
         alist = self.read_list()
 
         if not self.installed(name, alist):
-            msg = "Agent %s is not installed" % name
+            msg = _("Agent %s is not installed") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -380,7 +380,7 @@ class AgentManager:
         alist[name]["version"] = ""
         self.write_list(alist)
 
-        msg = "Agent %s uninstalled" % name
+        msg = _("Agent %s uninstalled") % name
         print(msg)
 
         return self.feedback(msg, sender)
@@ -403,7 +403,7 @@ class AgentManager:
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        return self.feedback("Restarting agent %s" % name, sender)
+        return self.feedback(_("Restarting agent %s") % name, sender)
 
     @Message(tags=["stop"])
     def stop(self, name, sender=None):
@@ -413,7 +413,7 @@ class AgentManager:
             return self.feedback(MSG_NO_PERM, sender)
 
         if not self.running(name):
-            msg = "Agent %s is not running" % name
+            msg = _("Agent %s is not running") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -423,7 +423,7 @@ class AgentManager:
             "stop-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        return self.feedback("Stopping agent %s" % name, sender)
+        return self.feedback(_("Stopping agent %s") % name, sender)
 
     @Message(tags=["update"])
     def update(self, name, sender=None):
@@ -435,7 +435,7 @@ class AgentManager:
         alist = self.read_list()
 
         if not self.installed(name, alist):
-            msg = "Agent %s is not installed" % name
+            msg = _("Agent %s is not installed") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -446,7 +446,7 @@ class AgentManager:
         git_code = self.fetch(name, alist[name]["source"])
 
         if git_code != 0:
-            msg = "Could not fetch source"
+            msg = _("Could not fetch source")
             print(msg)
             self.clean()
             return self.feedback(msg, sender)
@@ -456,7 +456,7 @@ class AgentManager:
 
         # Version is mandatory!
         if not a_info["version"]:
-            msg = "Missing version in info file for %s" % name
+            msg = _("Missing version in info file for %s") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -464,7 +464,7 @@ class AgentManager:
         local_ver = Version(alist[name]["version"])
 
         if remote_ver <= local_ver:
-            msg = "Agent %s is already up-to-date" % name
+            msg = _("Agent %s is already up-to-date") % name
             print(msg)
             return self.feedback(msg, sender)
 
@@ -527,7 +527,7 @@ class AgentManager:
         if a_info["script"]:
             # Restart the agent
             return [
-                self.feedback("Updated agent %s" % name, sender),
+                self.feedback(_("Updated agent %s") % name, sender),
                 self.restart(name, sender)
             ]
 
