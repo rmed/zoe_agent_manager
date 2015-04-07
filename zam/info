@@ -1,7 +1,7 @@
 agent = zam
-version = 0.6.4
+version = 0.7.0
 license = MIT
 maintainer = Rafael Medina García <rafamedgar@gmail.com>
 script = zam.py
-topics = 
+topics =
 description = An agent manager for Zoe
