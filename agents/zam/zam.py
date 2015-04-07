@@ -25,6 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import gettext
 import os
 import re
 import shutil
@@ -45,6 +46,7 @@ ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
+LOCALEDIR = path(env["ZOE_HOME"], "locale")
 
 
 @Agent(name="zam")
@@ -735,6 +737,16 @@ class AgentManager:
             return True
 
         return False
+
+    def set_locale(self, locale):
+        """ Set the locale for messages based on the locale of the sender.
+
+            If no locale is provided, English (en) is used by default.
+        """
+        lang = gettext.translation("zam", localedir=LOCALEDIR,
+            languages=[locale])
+
+        lang.install()
 
     def topics_install(self, agent, topics, conf=None):
         """ Set the topics an agent listens to DURING INSTALLATION.
