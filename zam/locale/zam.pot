@@ -1,0 +1,121 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2015-04-07 10:51+CEST\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: agents/zam/zam.py:42
+msgid "You don't have permissions to do that"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:63
+msgid "Agent %s is already in the list"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:92
+msgid "Agent %s is installed, uninstall it first"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:99
+msgid "Removed agent %s from agent list"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:113
+msgid "Agent %s is already installed"
+msgstr ""
+
+#. Zoe didn't find the git url for an agent
+#: agents/zam/zam.py:119
+msgid "Source not found"
+msgstr ""
+
+#. git couldn't clone the git URL of an agent
+#: agents/zam/zam.py:131 agents/zam/zam.py:449
+msgid "Could not fetch source"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:140 agents/zam/zam.py:459
+msgid "Missing version in info file for %s"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:238
+msgid "Agent %s installed correctly"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:250
+msgid "Agent %s is already running"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:256
+msgid "Agent %s does not exist!"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:280
+msgid "Launching agent %s"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:297
+msgid "Agent %s has no config files"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:313
+msgid "Agent %s purged"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:332 agents/zam/zam.py:438
+msgid "Agent %s is not installed"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:383
+msgid "Agent %s uninstalled"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:406
+msgid "Restarting agent %s"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:416
+msgid "Agent %s is not running"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:426
+msgid "Stopping agent %s"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:467
+msgid "Agent %s is already up-to-date"
+msgstr ""
+
+#. %s refers to the agent name
+#: agents/zam/zam.py:530
+msgid "Updated agent %s"
+msgstr ""
+
