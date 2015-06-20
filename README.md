@@ -1,15 +1,12 @@
-Zoe Agent Manager ![Agent version](https://img.shields.io/badge/Zoe_Agent-0.7.1-blue.svg "Zoe Agent Manager")
-=================
+# Zoe Agent Manager ![Agent version](https://img.shields.io/badge/Zoe_Agent-0.7.2-blue.svg "Zoe Agent Manager")
 
 An agent manager for Zoe.
 
-Requirements
-------------
+## Requirements
 
 This agent requires **git** in order to work.
 
-Installation
-------------
+## Installation
 
 - Clone or download the source code from this repository.
 
@@ -38,8 +35,7 @@ port = YOUR_PORT
 
 - Next time you start the server, the agent should be up and running.
 
-What can the agent do?
-----------------------
+## What can the agent do?
 
 The `etc/zam/` directory contains the agent's configuration files, including a list of agents and their files.
 
@@ -62,7 +58,6 @@ Now, for a proper list of actions:
 
 For examples and more information on the commands, please [check the wiki](https://github.com/rmed/zoe_agent_manager/wiki).
 
-That's nice, but how do I make my agent installable?
-----------------------------------------------------
+## That's nice, but how do I make my agent installable?
 
 Again, [check the wiki](https://github.com/rmed/zoe_agent_manager/wiki/Making-an-installable-agent) :)

@@ -1,102 +1,120 @@
-# Zoe Agent Manager Localization.
-# Copyright (C) 2015 Rafael Medina García
-# Rafael Medina <rafamedgar@gmail.com>, 2015.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Zoe Agent Manager 0.7.1\n"
-"POT-Creation-Date: 2015-04-07 14:31+CEST\n"
-"PO-Revision-Date: 2015-04-07 14:33+0100\n"
-"Last-Translator: Rafael Medina García <rafamedgar@gmail.com>\n"
-"Language-Team:  <rafamedgar@gmail.com>\n"
-"Language: en\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-06-21 01:19+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: pygettext.py 1.5\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.6.10\n"
 
 #: agents/zam/zam.py:45
 msgid "You don't have permissions to do that"
 msgstr ""
 
-#: agents/zam/zam.py:69
-msgid "Agent %s is already in the list"
+#: agents/zam/zam.py:71
+#, python-format
+msgid "Agent '%s' is already in the list"
 msgstr ""
 
-#: agents/zam/zam.py:100
-msgid "Agent %s is installed, uninstall it first"
+#: agents/zam/zam.py:102
+#, python-format
+msgid "Agent '%s' is installed, uninstall it first"
 msgstr ""
 
-#: agents/zam/zam.py:107
-msgid "Removed agent %s from agent list"
+#: agents/zam/zam.py:111
+#, python-format
+msgid "Removed agent '%s' from agent list"
 msgstr ""
 
-#: agents/zam/zam.py:123
-msgid "Agent %s is already installed"
+#: agents/zam/zam.py:127
+#, python-format
+msgid "Agent '%s' is already installed"
 msgstr ""
 
-#: agents/zam/zam.py:129
+#: agents/zam/zam.py:132
 msgid "Source not found"
 msgstr ""
 
-#: agents/zam/zam.py:141 agents/zam/zam.py:472
+#: agents/zam/zam.py:146 agents/zam/zam.py:478
 msgid "Could not fetch source"
 msgstr ""
 
-#: agents/zam/zam.py:150 agents/zam/zam.py:482
-msgid "Missing version in info file for %s"
+#: agents/zam/zam.py:155 agents/zam/zam.py:487
+#, python-format
+msgid "Missing version in info file for '%s'"
 msgstr ""
 
-#: agents/zam/zam.py:220
-msgid "Agent %s installed correctly"
-msgstr ""
-
-#: agents/zam/zam.py:263
-msgid "Agent %s is already running"
+#: agents/zam/zam.py:253
+#, python-format
+msgid "Agent '%s' installed correctly"
 msgstr ""
 
 #: agents/zam/zam.py:269
-msgid "Agent %s does not exist!"
+#, python-format
+msgid "Agent '%s' is already running"
 msgstr ""
 
-#: agents/zam/zam.py:293
-msgid "Launching agent %s"
+#: agents/zam/zam.py:275
+#, python-format
+msgid "Agent '%s' does not exist!"
 msgstr ""
 
-#: agents/zam/zam.py:312
-msgid "Agent %s has no config files"
+#: agents/zam/zam.py:296
+#, python-format
+msgid "Launching agent '%s'"
 msgstr ""
 
-#: agents/zam/zam.py:328
-msgid "Agent %s purged"
+#: agents/zam/zam.py:317
+#, python-format
+msgid "Agent '%s' has no config files"
 msgstr ""
 
-#: agents/zam/zam.py:349 agents/zam/zam.py:461
-msgid "Agent %s is not installed"
+#: agents/zam/zam.py:335
+#, python-format
+msgid "Agent '%s' purged"
 msgstr ""
 
-#: agents/zam/zam.py:400
-msgid "Agent %s uninstalled"
+#: agents/zam/zam.py:355 agents/zam/zam.py:465
+#, python-format
+msgid "Agent '%s' is not installed"
 msgstr ""
 
-#: agents/zam/zam.py:425
-msgid "Restarting agent %s"
+#: agents/zam/zam.py:406
+#, python-format
+msgid "Agent '%s' uninstalled"
 msgstr ""
 
-#: agents/zam/zam.py:437
-msgid "Agent %s is not running"
+#: agents/zam/zam.py:419 agents/zam/zam.py:441
+#, python-format
+msgid "Agent '%s' is not running"
 msgstr ""
 
-#: agents/zam/zam.py:447
-msgid "Stopping agent %s"
+#: agents/zam/zam.py:427
+#, python-format
+msgid "Restarting agent '%s'"
 msgstr ""
 
-#: agents/zam/zam.py:490
-msgid "Agent %s is already up-to-date"
+#: agents/zam/zam.py:449
+#, python-format
+msgid "Stopping agent '%s'"
 msgstr ""
 
-#: agents/zam/zam.py:539
-msgid "Updated agent %s"
+#: agents/zam/zam.py:495
+#, python-format
+msgid "Agent '%s' is already up-to-date"
+msgstr ""
+
+#: agents/zam/zam.py:560
+#, python-format
+msgid "Updated agent '%s'"
 msgstr ""
