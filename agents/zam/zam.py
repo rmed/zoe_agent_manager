@@ -602,7 +602,6 @@ class AgentManager:
 
         to_send = {
             "dst": "relay",
-            "tag": "relay",
             "relayto": "jabber",
             "to": user,
             "msg": message
