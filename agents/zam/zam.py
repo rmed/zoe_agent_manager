@@ -252,7 +252,7 @@ class AgentManager:
             return [
                 self.feedback(
                     _("Agent '%s' installed correctly") % name, sender),
-                self.launch(name, sender, locale)
+                self.launch(name, sender)
             ]
 
     @Message(tags=["launch"])
@@ -356,7 +356,7 @@ class AgentManager:
                 _("Agent '%s' is not installed") % name, sender)
 
         if self.running(name):
-            self.stop(name, sender, locale)
+            self.stop(name, sender)
 
         # Remove from zoe.conf
         zconf = self.read_conf()
@@ -559,7 +559,7 @@ class AgentManager:
             # Restart the agent
             return [
                 self.feedback(_("Updated agent '%s'") % name, sender),
-                self.restart(name, sender, locale)
+                self.restart(name, sender)
             ]
 
     def add_to_list(self, name, source, alist, ret=True):
