@@ -48,6 +48,7 @@ ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
 ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
+ZOE_LOCALE = env["ZOE_LOCALE"] or "en"
 LOCALEDIR = path(env["ZOE_HOME"], "locale")
 
 
@@ -55,9 +56,9 @@ LOCALEDIR = path(env["ZOE_HOME"], "locale")
 class AgentManager:
 
     @Message(tags=["add"])
-    def add(self, name, source, sender=None, locale="en"):
+    def add(self, name, source, sender=None):
         """ Add an agent to the list. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to add an agent" % sender)
@@ -82,13 +83,13 @@ class AgentManager:
             pass
 
     @Message(tags=["forget"])
-    def forget(self, name, sender=None, locale="en"):
+    def forget(self, name, sender=None):
         """ Remove an agent from the agent list.
 
             The agent must be uninstalled first, and means that in order to
             install it again, the source must be provided.
         """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to remove an agent" % sender)
@@ -111,9 +112,9 @@ class AgentManager:
             _("Removed agent '%s' from agent list") % name, sender)
 
     @Message(tags=["install"])
-    def install(self, name, source=None, sender=None, locale="en"):
+    def install(self, name, source=None, sender=None):
         """ Install an agent from source. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to install an agent" % sender)
@@ -255,9 +256,9 @@ class AgentManager:
             ]
 
     @Message(tags=["launch"])
-    def launch(self, name, sender=None, locale="en"):
+    def launch(self, name, sender=None):
         """ Launch an agent. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to launch an agent" % sender)
@@ -298,9 +299,9 @@ class AgentManager:
         ]
 
     @Message(tags=["purge"])
-    def purge(self, name, sender=None, locale="en"):
+    def purge(self, name, sender=None):
         """ Remove an agent's configuration files. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to purge an agent" % sender)
@@ -335,13 +336,13 @@ class AgentManager:
         return self.feedback(_("Agent '%s' purged") % name, sender)
 
     @Message(tags=["remove"])
-    def remove(self, name, sender=None, locale="en"):
+    def remove(self, name, sender=None):
         """ Uninstall an agent.
 
             Any additional files (such as configuration files) are kept
             in case the agent is installed again.
         """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to uninstall an agent" % sender)
@@ -406,9 +407,9 @@ class AgentManager:
         return self.feedback(_("Agent '%s' uninstalled") % name, sender)
 
     @Message(tags=["restart"])
-    def restart(self, name, sender=None, locale="en"):
+    def restart(self, name, sender=None):
         """ Restart an agent. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to restart an agent" % sender)
@@ -427,9 +428,9 @@ class AgentManager:
         return self.feedback(_("Restarting agent '%s'") % name, sender)
 
     @Message(tags=["stop"])
-    def stop(self, name, sender=None, locale="en"):
+    def stop(self, name, sender=None):
         """ Stop an agent's execution. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to stop an agent" % sender)
@@ -449,9 +450,9 @@ class AgentManager:
         return self.feedback(_("Stopping agent '%s'") % name, sender)
 
     @Message(tags=["update"])
-    def update(self, name, sender=None, locale="en"):
+    def update(self, name, sender=None):
         """ Update an installed agent. """
-        self.set_locale(locale)
+        self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to update an agent" % sender)
@@ -765,11 +766,19 @@ class AgentManager:
 
         return False
 
-    def set_locale(self, locale):
+    def set_locale(self, user):
         """ Set the locale for messages based on the locale of the sender.
 
-            If no locale is provided, English (en) is used by default.
+            If no locale is povided, Zoe's default locale is used or
+            English (en) is used by default.
         """
+        if not user:
+            locale = ZOE_LOCALE
+
+        else:
+            conf = USERS.subject(user)
+            locale = conf.get("locale", ZOE_LOCALE)
+
         lang = gettext.translation("zam", localedir=LOCALEDIR,
             languages=[locale,])
 

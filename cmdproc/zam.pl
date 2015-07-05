@@ -41,7 +41,6 @@ my $stop;
 my $update;
 
 my $sender;
-my $lang;
 my @strings;
 
 GetOptions("get"                   => \$get,
@@ -58,7 +57,6 @@ GetOptions("get"                   => \$get,
            "rs"                    => \$restart,
            "s"                     => \$stop,
            "u"                     => \$update,
-           "lang=s"                => \$lang,
            "string=s"              => \@strings);
 
 if ($get) {
@@ -91,36 +89,36 @@ if ($get) {
 # Commands in the script
 #
 sub get {
-  print("--a --lang=en add /the agent <string> from <string>\n");
-  print("--c --lang=en clean the temp/temporary directory\n");
-  print("--f --lang=en forget /the agent <string>\n");
-  print("--i --lang=en install /the agent <string>\n");
-  print("--is --lang=en install /the agent <string> from <string>\n");
-  print("--l --lang=en launch /the agent <string>\n");
-  print("--p --lang=en purge /the agent <string>\n");
-  print("--r --lang=en remove/uninstall /the agent <string>\n");
-  print("--rs --lang=en restart /the agent <string>\n");
-  print("--s --lang=en stop /the agent <string>\n");
-  print("--u --lang=en update /the agent <string>\n");
+  print("--a add /the agent <string> from <string>\n");
+  print("--c clean the temp/temporary directory\n");
+  print("--f forget /the agent <string>\n");
+  print("--i install /the agent <string>\n");
+  print("--is install /the agent <string> from <string>\n");
+  print("--l launch /the agent <string>\n");
+  print("--p purge /the agent <string>\n");
+  print("--r remove/uninstall /the agent <string>\n");
+  print("--rs restart /the agent <string>\n");
+  print("--s stop /the agent <string>\n");
+  print("--u update /the agent <string>\n");
 
-  print("--a --lang=es añade /el agente <string> desde <string>\n");
-  print("--c --lang=es limpia el directorio temp/temporal\n");
-  print("--f --lang=es olvida /el agente <string>\n");
-  print("--i --lang=es instala /el agente <string>\n");
-  print("--is --lang=es instala /el agente <string> desde <string>\n");
-  print("--l --lang=es lanza /el agente <string>\n");
-  print("--p --lang=es purga /el agente <string>\n");
-  print("--r --lang=es borra/desinstala /el agente <string>\n");
-  print("--rs --lang=es reinicia /el agente <string>\n");
-  print("--s --lang=es para/detén /el agente <string>\n");
-  print("--u --lang=es actualiza /el agente <string>\n");
+  print("--a añade /el agente <string> desde <string>\n");
+  print("--c limpia el directorio temp/temporal\n");
+  print("--f olvida /el agente <string>\n");
+  print("--i instala /el agente <string>\n");
+  print("--is instala /el agente <string> desde <string>\n");
+  print("--l lanza /el agente <string>\n");
+  print("--p purga /el agente <string>\n");
+  print("--r borra/desinstala /el agente <string>\n");
+  print("--rs reinicia /el agente <string>\n");
+  print("--s para/detén /el agente <string>\n");
+  print("--u actualiza /el agente <string>\n");
 }
 
 #
 # Add an agent to the list
 #
 sub add {
-  print("message dst=zam&tag=add&name=$strings[0]&source=$strings[1]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=add&name=$strings[0]&source=$strings[1]&sender=$sender\n");
 }
 
 #
@@ -134,49 +132,49 @@ sub clean {
 # Forget an agent
 #
 sub forget {
-  print("message dst=zam&tag=forget&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=forget&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Install an agent
 #
 sub install {
-  print("message dst=zam&tag=install&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=install&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Install an agent from source
 #
 sub install_source {
-  print("message dst=zam&tag=install&name=$strings[0]&source=$strings[1]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=install&name=$strings[0]&source=$strings[1]&sender=$sender\n");
 }
 
 #
 # Launch an agent
 #
 sub launch {
-  print("message dst=zam&tag=launch&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=launch&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Purge an agent
 #
 sub purge {
-  print("message dst=zam&tag=purge&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=purge&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Remove/Uninstall an agent
 #
 sub remove {
-  print("message dst=zam&tag=remove&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=remove&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Restart an agent
 #
 sub restart {
-  print("message dst=zam&tag=restart&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=restart&name=$strings[0]&sender=$sender\n");
 }
 
 
@@ -184,12 +182,12 @@ sub restart {
 # Stop an agent
 #
 sub stop {
-  print("message dst=zam&tag=stop&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=stop&name=$strings[0]&sender=$sender\n");
 }
 
 #
 # Update an agent
 #
 sub update {
-  print("message dst=zam&tag=update&name=$strings[0]&sender=$sender&locale=$lang\n");
+  print("message dst=zam&tag=update&name=$strings[0]&sender=$sender\n");
 }
