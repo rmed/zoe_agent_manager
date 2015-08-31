@@ -1,4 +1,4 @@
-# Zoe Agent Manager ![Agent version](https://img.shields.io/badge/Zoe_Agent-0.7.4-blue.svg "Zoe Agent Manager")
+# Zoe Agent Manager ![Agent version](https://img.shields.io/badge/Zoe_Agent-0.8.0-blue.svg "Zoe Agent Manager")
 
 An agent manager for Zoe.
 
