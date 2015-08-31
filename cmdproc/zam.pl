@@ -41,11 +41,13 @@ my $stop;
 my $update;
 
 my $sender;
+my $src;
 my @strings;
 
 GetOptions("get"                   => \$get,
            "run"                   => \$run,
            "msg-sender-uniqueid=s" => \$sender,
+           "msg-src=s"             => \$src,
            "a"                     => \$add,
            "c"                     => \$clean,
            "f"                     => \$forget,
@@ -118,7 +120,7 @@ sub get {
 # Add an agent to the list
 #
 sub add {
-  print("message dst=zam&tag=add&name=$strings[0]&source=$strings[1]&sender=$sender\n");
+  print("message dst=zam&tag=add&name=$strings[0]&source=$strings[1]&sender=$sender&src=$src\n");
 }
 
 #
@@ -132,49 +134,49 @@ sub clean {
 # Forget an agent
 #
 sub forget {
-  print("message dst=zam&tag=forget&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=forget&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Install an agent
 #
 sub install {
-  print("message dst=zam&tag=install&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=install&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Install an agent from source
 #
 sub install_source {
-  print("message dst=zam&tag=install&name=$strings[0]&source=$strings[1]&sender=$sender\n");
+  print("message dst=zam&tag=install&name=$strings[0]&source=$strings[1]&sender=$sender&src=$src\n");
 }
 
 #
 # Launch an agent
 #
 sub launch {
-  print("message dst=zam&tag=launch&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=launch&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Purge an agent
 #
 sub purge {
-  print("message dst=zam&tag=purge&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=purge&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Remove/Uninstall an agent
 #
 sub remove {
-  print("message dst=zam&tag=remove&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=remove&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Restart an agent
 #
 sub restart {
-  print("message dst=zam&tag=restart&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=restart&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 
@@ -182,12 +184,12 @@ sub restart {
 # Stop an agent
 #
 sub stop {
-  print("message dst=zam&tag=stop&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=stop&name=$strings[0]&sender=$sender&src=$src\n");
 }
 
 #
 # Update an agent
 #
 sub update {
-  print("message dst=zam&tag=update&name=$strings[0]&sender=$sender\n");
+  print("message dst=zam&tag=update&name=$strings[0]&sender=$sender&src=$src\n");
 }

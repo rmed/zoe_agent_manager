@@ -56,20 +56,20 @@ LOCALEDIR = path(env["ZOE_HOME"], "locale")
 class AgentManager:
 
     @Message(tags=["add"])
-    def add(self, name, source, sender=None):
+    def add(self, name, source, sender=None, src=None):
         """ Add an agent to the list. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to add an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         alist = self.read_list()
 
         if name in alist.sections():
             self.logger.info("Tried to add existing agent %s" % name)
             return self.feedback(
-                _("Agent '%s' is already in the list") % name, sender)
+                _("Agent '%s' is already in the list") % name, sender, src)
 
         self.add_to_list(name, source, alist, False)
 
@@ -83,7 +83,7 @@ class AgentManager:
             pass
 
     @Message(tags=["forget"])
-    def forget(self, name, sender=None):
+    def forget(self, name, sender=None, src=None):
         """ Remove an agent from the agent list.
 
             The agent must be uninstalled first, and means that in order to
@@ -93,14 +93,14 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to remove an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         alist = self.read_list()
 
         if self.installed(name, alist):
             self.logger.info("Tried to forget installed agent '%s'" % name)
             return self.feedback(
-                _("Agent '%s' is installed, uninstall it first") % name, sender)
+                _("Agent '%s' is installed, uninstall it first") % name, sender, src)
 
         if name in alist.sections():
             alist.remove_section(name)
@@ -109,28 +109,28 @@ class AgentManager:
         self.logger.info("'%s' removed from list" % name)
 
         return self.feedback(
-            _("Removed agent '%s' from agent list") % name, sender)
+            _("Removed agent '%s' from agent list") % name, sender, src)
 
     @Message(tags=["install"])
-    def install(self, name, source=None, sender=None):
+    def install(self, name, source=None, sender=None, src=None):
         """ Install an agent from source. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to install an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         alist = self.read_list()
 
         if self.installed(name, alist):
             self.logger.info("'%s' is already installed" % name)
             return self.feedback(
-                _("Agent '%s' is already installed") % name, sender)
+                _("Agent '%s' is already installed") % name, sender, src)
 
         if name not in alist.sections():
             if not source:
                 self.logger.debug("Source for '%s' not found" % name)
-                return self.feedback(_("Source not found"), sender)
+                return self.feedback(_("Source not found"), sender, src)
 
             alist = self.add_to_list(name, source, alist)
 
@@ -144,7 +144,7 @@ class AgentManager:
                 alist[name]["source"])
 
             self.clean()
-            return self.feedback(_("Could not fetch source"), sender)
+            return self.feedback(_("Could not fetch source"), sender, src)
 
         a_info = self.parse_info(path(temp, "zam", "info"));
 
@@ -153,7 +153,7 @@ class AgentManager:
             self.logger.info("Missing version information")
 
             return self.feedback(
-                _("Missing version in info file for '%s'") % name, sender)
+                _("Missing version in info file for '%s'") % name, sender, src)
 
         # PREINSTALL
         preinst = path(temp, "zam", "preinst")
@@ -249,31 +249,29 @@ class AgentManager:
 
         # Launch the agent (and register it)
         if a_info["script"]:
-            return [
-                self.feedback(
-                    _("Agent '%s' installed correctly") % name, sender),
-                self.launch(name, sender)
-            ]
+            self.sendbus(self.feedback(
+                _("Agent '%s' installed correctly") % name, sender, src).msg())
+            return self.launch(name, sender, src)
 
     @Message(tags=["launch"])
-    def launch(self, name, sender=None):
+    def launch(self, name, sender=None, src=None):
         """ Launch an agent. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to launch an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         if self.running(name):
             self.logger.info("'%s' is already running" % name)
             return self.feedback(
-                _("Agent '%s' is already running") % name, sender)
+                _("Agent '%s' is already running") % name, sender, src)
 
         agent_dir = path(env["ZOE_HOME"], "agents", name)
         if not os.path.isdir(agent_dir):
             self.logger.info("Directory for '%s' does not exist" % name)
             return self.feedback(
-                _("Agent '%s' does not exist!") % name, sender)
+                _("Agent '%s' does not exist!") % name, sender, src)
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
@@ -293,19 +291,18 @@ class AgentManager:
             "port": port
         }
 
-        return [
-            self.feedback(_("Launching agent '%s'") % name, sender),
-            zoe.MessageBuilder(launch_msg)
-        ]
+        self.sendbus(
+            self.feedback(_("Launching agent '%s'") % name, sender, src).msg())
+        return zoe.MessageBuilder(launch_msg)
 
     @Message(tags=["purge"])
-    def purge(self, name, sender=None):
+    def purge(self, name, sender=None, src=None):
         """ Remove an agent's configuration files. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to purge an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         # Uninstall the agent
         self.remove(name)
@@ -315,7 +312,7 @@ class AgentManager:
         if not os.path.isfile(confpath):
             self.logger.info("'%s' has no config files" % name)
             return self.feedback(
-                _("Agent '%s' has no config files") % name, sender)
+                _("Agent '%s' has no config files") % name, sender, src)
 
         with open(confpath, "r") as conflist:
             for cf in conflist.read().splitlines():
@@ -333,10 +330,10 @@ class AgentManager:
 
         self.logger.info("Agent '%s' purged" % name)
 
-        return self.feedback(_("Agent '%s' purged") % name, sender)
+        return self.feedback(_("Agent '%s' purged") % name, sender, src)
 
     @Message(tags=["remove"])
-    def remove(self, name, sender=None):
+    def remove(self, name, sender=None, src=None):
         """ Uninstall an agent.
 
             Any additional files (such as configuration files) are kept
@@ -346,17 +343,17 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to uninstall an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         alist = self.read_list()
 
         if not self.installed(name, alist):
             self.logger.info("'%s' is not installed" % name)
             return self.feedback(
-                _("Agent '%s' is not installed") % name, sender)
+                _("Agent '%s' is not installed") % name, sender, src)
 
         if self.running(name):
-            self.stop(name, sender)
+            self.stop(name, sender, src)
 
         # Remove from zoe.conf
         zconf = self.read_conf()
@@ -404,20 +401,21 @@ class AgentManager:
 
         self.logger.info("'%s' has been uninstalled" % name)
 
-        return self.feedback(_("Agent '%s' uninstalled") % name, sender)
+        return self.feedback(_("Agent '%s' uninstalled") % name, sender, src)
 
     @Message(tags=["restart"])
-    def restart(self, name, sender=None):
+    def restart(self, name, sender=None, src=None):
         """ Restart an agent. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to restart an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         if not self.running(name):
             self.logger.info("'%s' is not running" % name)
-            return self.feedback(_("Agent '%s' is not running") % name, sender)
+            return self.feedback(_("Agent '%s' is not running") % name,
+                sender, src)
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
@@ -425,21 +423,21 @@ class AgentManager:
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        return self.feedback(_("Restarting agent '%s'") % name, sender)
+        return self.feedback(_("Restarting agent '%s'") % name, sender, src)
 
     @Message(tags=["stop"])
-    def stop(self, name, sender=None):
+    def stop(self, name, sender=None, src=None):
         """ Stop an agent's execution. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to stop an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         if not self.running(name):
             self.logger.info("'%s' is not running" % name)
             return self.feedback(
-                _("Agent '%s' is not running") % name, sender)
+                _("Agent '%s' is not running") % name, sender, src)
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
@@ -447,23 +445,23 @@ class AgentManager:
             "stop-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
-        return self.feedback(_("Stopping agent '%s'") % name, sender)
+        return self.feedback(_("Stopping agent '%s'") % name, sender, src)
 
     @Message(tags=["update"])
-    def update(self, name, sender=None):
+    def update(self, name, sender=None, src=None):
         """ Update an installed agent. """
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to update an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender)
+            return self.feedback(MSG_NO_PERM, sender, src)
 
         alist = self.read_list()
 
         if not self.installed(name, alist):
             self.logger.info("'%s' is not installed" % name)
             return self.feedback(
-                _("Agent '%s' is not installed") % name, sender)
+                _("Agent '%s' is not installed") % name, sender, src)
 
         self.clean()
 
@@ -476,7 +474,7 @@ class AgentManager:
                 alist[name]["source"])
 
             self.clean()
-            return self.feedback(_("Could not fetch source"), sender)
+            return self.feedback(_("Could not fetch source"), sender, src)
 
         # Parse information
         a_info = self.parse_info(path(temp, "zam", "info"));
@@ -485,7 +483,7 @@ class AgentManager:
         if not a_info["version"]:
             self.logger.info("Missing version information")
             return self.feedback(
-                _("Missing version in info file for '%s'") % name, sender)
+                _("Missing version in info file for '%s'") % name, sender, src)
 
         remote_ver = Version(a_info["version"])
         local_ver = Version(alist[name]["version"])
@@ -493,7 +491,7 @@ class AgentManager:
         if remote_ver <= local_ver:
             self.logger.info("'%s' is already up-to-date" % name)
             return self.feedback(
-                _("Agent '%s' is already up-to-date") % name, sender)
+                _("Agent '%s' is already up-to-date") % name, sender, src)
 
         # PREUPDATE
         preupd = path(temp, "zam", "preupd")
@@ -557,10 +555,11 @@ class AgentManager:
 
         if a_info["script"]:
             # Restart the agent
-            return [
-                self.feedback(_("Updated agent '%s'") % name, sender),
-                self.restart(name, sender)
-            ]
+            self.sendbus(
+                self.feedback(_("Updated agent '%s'") % name,
+                    sender, src).msg())
+
+            return self.restart(name, sender, src)
 
     def add_to_list(self, name, source, alist, ret=True):
         """ Add an agent to the list.
@@ -591,19 +590,20 @@ class AgentManager:
         if ret:
             return new_alist
 
-    def feedback(self, message, user):
+    def feedback(self, message, user, dst):
         """ If there is a sender, send feedback message with status
-            through Jabber.
+            through Jabber or Telegram.
 
             message -- message to send
             user -- user to send the message to
+            dst -- where to send the message to (jabber, tg)
         """
         if not user:
             return
 
         to_send = {
             "dst": "relay",
-            "relayto": "jabber",
+            "relayto": dst,
             "to": user,
             "msg": message
         }
