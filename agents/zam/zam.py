@@ -42,7 +42,6 @@ from zoe.models.users import Users
 
 gettext.install("zam")
 
-MSG_NO_PERM = _("You don't have permissions to do that")
 USERS = Users()
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
@@ -62,7 +61,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to add an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         alist = self.read_list()
 
@@ -93,14 +93,16 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to remove an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         alist = self.read_list()
 
         if self.installed(name, alist):
             self.logger.info("Tried to forget installed agent '%s'" % name)
             return self.feedback(
-                _("Agent '%s' is installed, uninstall it first") % name, sender, src)
+                _("Agent '%s' is installed, uninstall it first") % name,
+                sender, src)
 
         if name in alist.sections():
             alist.remove_section(name)
@@ -118,7 +120,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to install an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         alist = self.read_list()
 
@@ -260,7 +263,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to launch an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         if self.running(name):
             self.logger.info("'%s' is already running" % name)
@@ -302,7 +306,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to purge an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         # Uninstall the agent
         self.remove(name)
@@ -343,7 +348,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to uninstall an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         alist = self.read_list()
 
@@ -410,7 +416,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to restart an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         if not self.running(name):
             self.logger.info("'%s' is not running" % name)
@@ -432,7 +439,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to stop an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         if not self.running(name):
             self.logger.info("'%s' is not running" % name)
@@ -454,7 +462,8 @@ class AgentManager:
 
         if not self.has_permissions(sender):
             self.logger.info("%s tried to update an agent" % sender)
-            return self.feedback(MSG_NO_PERM, sender, src)
+            return self.feedback(_("You don't have permissions to do that"),
+                sender, src)
 
         alist = self.read_list()
 

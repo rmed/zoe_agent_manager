@@ -4,12 +4,7 @@
 # Must be run from the zam/ directory
 # Requires 'msgfmt' command. Only for development!
 
-# Generate original English .mo
-echo "Building 'en'..."
-mkdir -p ../locale/en/LC_MESSAGES
-msgfmt -o ../locale/en/LC_MESSAGES/zam.mo locale/zam.pot
-
-# Generate rest of .mo files
+# Generate .mo files
 for po in locale/*.po
 do
     file=${po##*/}
