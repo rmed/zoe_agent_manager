@@ -42,7 +42,6 @@ from zoe.models.users import Users
 
 gettext.install("zam")
 
-USERS = Users()
 ZCONF_PATH = path(env["ZOE_HOME"], "etc", "zoe.conf")
 ZAM_TEMP = path(env["ZOE_VAR"], "zam")
 ZAM_LIST = path(env["ZOE_HOME"], "etc", "zam", "list")
@@ -639,7 +638,7 @@ class AgentManager:
             agent manager (belongs to group 'admins').
         """
         # No user, manual commands from terminal
-        if not user or user in USERS.membersof("admins"):
+        if not user or user in Users().membersof("admins"):
             return True
 
         return False
@@ -785,7 +784,7 @@ class AgentManager:
             locale = ZOE_LOCALE
 
         else:
-            conf = USERS.subject(user)
+            conf = Users().subject(user)
             locale = conf.get("locale", ZOE_LOCALE)
 
         lang = gettext.translation("zam", localedir=LOCALEDIR,
