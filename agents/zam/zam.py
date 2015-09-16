@@ -37,7 +37,7 @@ from io import StringIO
 from os import environ as env
 from os.path import join as path
 from semantic_version import Version
-from zoe.deco import *
+from zoe.deco import Agent, Message
 from zoe.models.users import Users
 
 gettext.install("zam")
@@ -54,8 +54,17 @@ LOCALEDIR = path(env["ZOE_HOME"], "locale")
 class AgentManager:
 
     @Message(tags=["add"])
-    def add(self, name, source, sender=None, src=None):
-        """ Add an agent to the list. """
+    def add(self, parser):
+        """ Add an agent to the list.
+
+            name*   - unique name of the agent
+            source* - git source from which the agent is fetched
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, source, sender, src = self.multiparse(
+            parser, ['name', 'source', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -82,12 +91,19 @@ class AgentManager:
             pass
 
     @Message(tags=["forget"])
-    def forget(self, name, sender=None, src=None):
+    def forget(self, parser):
         """ Remove an agent from the agent list.
 
             The agent must be uninstalled first, and means that in order to
             install it again, the source must be provided.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
         """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -113,8 +129,17 @@ class AgentManager:
             _("Removed agent '%s' from agent list") % name, sender, src)
 
     @Message(tags=["install"])
-    def install(self, name, source=None, sender=None, src=None):
-        """ Install an agent from source. """
+    def install(self, parser):
+        """ Install an agent from source.
+
+            name*   - unique name of the agent
+            source* - git source from which the agent is fetched
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, source, sender, src = self.multiparse(
+            parser, ['name', 'source', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -256,8 +281,16 @@ class AgentManager:
             return self.launch(name, sender, src)
 
     @Message(tags=["launch"])
-    def launch(self, name, sender=None, src=None):
-        """ Launch an agent. """
+    def launch(self, parser):
+        """ Launch an agent.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -299,8 +332,16 @@ class AgentManager:
         return zoe.MessageBuilder(launch_msg)
 
     @Message(tags=["purge"])
-    def purge(self, name, sender=None, src=None):
-        """ Remove an agent's configuration files. """
+    def purge(self, parser):
+        """ Remove an agent's configuration files.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -337,12 +378,19 @@ class AgentManager:
         return self.feedback(_("Agent '%s' purged") % name, sender, src)
 
     @Message(tags=["remove"])
-    def remove(self, name, sender=None, src=None):
+    def remove(self, parser):
         """ Uninstall an agent.
 
             Any additional files (such as configuration files) are kept
             in case the agent is installed again.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
         """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -409,8 +457,16 @@ class AgentManager:
         return self.feedback(_("Agent '%s' uninstalled") % name, sender, src)
 
     @Message(tags=["restart"])
-    def restart(self, name, sender=None, src=None):
-        """ Restart an agent. """
+    def restart(self, parser):
+        """ Restart an agent.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -432,8 +488,16 @@ class AgentManager:
         return self.feedback(_("Restarting agent '%s'") % name, sender, src)
 
     @Message(tags=["stop"])
-    def stop(self, name, sender=None, src=None):
-        """ Stop an agent's execution. """
+    def stop(self, parser):
+        """ Stop an agent's execution.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -455,8 +519,16 @@ class AgentManager:
         return self.feedback(_("Stopping agent '%s'") % name, sender, src)
 
     @Message(tags=["update"])
-    def update(self, name, sender=None, src=None):
-        """ Update an installed agent. """
+    def update(self, parser):
+        """ Update an installed agent.
+
+            name*   - unique name of the agent
+            sender  - sender of the message
+            src     - channel from which the message was obtained
+        """
+        name, sender, src = self.multiparse(
+            parser, ['name', 'sender', 'src'])
+
         self.set_locale(sender)
 
         if not self.has_permissions(sender):
@@ -572,12 +644,12 @@ class AgentManager:
     def add_to_list(self, name, source, alist, ret=True):
         """ Add an agent to the list.
 
-            name -- name of the anget to install. Will be checked against
+            name    - name of the agent to install. Will be checked against
                 the agent list
-            source -- git repository URL, or GitHub repository name,
+            source  - git repository URL, or GitHub repository name,
                 of the source
-            alist -- agent list file
-            ret -- whether or not this function should return the new list
+            alist   - agent list file
+            ret     - whether or not this function should return the new list
         """
         new_alist = alist
         source_url = source
@@ -602,9 +674,9 @@ class AgentManager:
         """ If there is a sender, send feedback message with status
             through Jabber or Telegram.
 
-            message -- message to send
-            user -- user to send the message to
-            dst -- where to send the message to (jabber, tg)
+            message - message to send
+            user    - user to send the message to
+            dst     - where to send the message to (jabber, tg)
         """
         if not user:
             return
@@ -710,6 +782,18 @@ class AgentManager:
             file_list.append(stripped)
 
         return file_list
+
+    def multiparse(self, parser, keys):
+        """ Obtain several elements from the parser, identified by the
+            list of keys.
+
+            Values are returned in the order specified by the keys list.
+        """
+        result = []
+        for k in keys:
+            result.append(parser.get(k))
+
+        return result
 
     def parse_info(self, info_path):
         """ When installing an agent, parse the information file and return
