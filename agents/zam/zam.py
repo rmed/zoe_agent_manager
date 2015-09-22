@@ -278,7 +278,7 @@ class AgentManager:
         if a_info["script"]:
             self.sendbus(self.feedback(
                 _("Agent '%s' installed correctly") % name, sender, src).msg())
-            return self.launch(name, sender, src)
+            return self.launch(parser)
 
     @Message(tags=["launch"])
     def launch(self, parser):
@@ -350,7 +350,7 @@ class AgentManager:
                 sender, src)
 
         # Uninstall the agent
-        self.remove(name)
+        self.remove(parser)
 
         # Remove config files
         confpath = path(ZAM_INFO, name + ".conffiles")
@@ -406,7 +406,7 @@ class AgentManager:
                 _("Agent '%s' is not installed") % name, sender, src)
 
         if self.running(name):
-            self.stop(name, sender, src)
+            self.stop(parser)
 
         # Remove from zoe.conf
         zconf = self.read_conf()
@@ -639,7 +639,7 @@ class AgentManager:
                 self.feedback(_("Updated agent '%s'") % name,
                     sender, src).msg())
 
-            return self.restart(name, sender, src)
+            return self.restart(parser)
 
     def add_to_list(self, name, source, alist, ret=True):
         """ Add an agent to the list.
