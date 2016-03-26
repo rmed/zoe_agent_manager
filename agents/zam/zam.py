@@ -49,6 +49,12 @@ ZAM_INFO = path(env["ZOE_HOME"], "etc", "zam", "info")
 ZOE_LOCALE = env["ZOE_LOCALE"] or "en"
 LOCALEDIR = path(env["ZOE_HOME"], "locale")
 
+# Only recognizes `zoe` and `zoe.sh` scripts
+ZOE_LAUNCHER = path(env["ZOE_HOME"], "zoe")
+if not os.path.isfile(ZOE_LAUNCHER):
+    # Fallback to old script
+    ZOE_LAUNCHER = path(env["ZOE_HOME"], "zoe.sh")
+
 
 @Agent(name="zam")
 class AgentManager:
@@ -311,7 +317,7 @@ class AgentManager:
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
-        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+        proc = subprocess.Popen([ZOE_LAUNCHER,
             "launch-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
@@ -481,7 +487,7 @@ class AgentManager:
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
-        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+        proc = subprocess.Popen([ZOE_LAUNCHER,
             "restart-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
@@ -512,7 +518,7 @@ class AgentManager:
 
         # Redirect stdout and stderr to zam's log
         log_file = open(path(env["ZOE_LOGS"], "zam.log"), "a")
-        proc = subprocess.Popen([path(env["ZOE_HOME"], "zoe.sh"),
+        proc = subprocess.Popen([ZOE_LAUNCHER,
             "stop-agent", name], stdout=log_file, stderr=log_file,
             cwd=env["ZOE_HOME"])
 
